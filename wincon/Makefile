@@ -15,6 +15,11 @@ else
 	RM = rm -f
 endif
 
+# for MSYS2/MinGW-w64
+ifneq ($(MSYSTEM),)
+	RM = rm -f
+endif
+
 ifndef PDCURSES_SRCDIR
 	PDCURSES_SRCDIR = ..
 endif
@@ -41,6 +46,12 @@ else
 endif
 
 CFLAGS += -I$(PDCURSES_SRCDIR)
+
+# for windows 10 jp
+ifeq ($(WIN10_JP),Y)
+	CFLAGS += -DPDC_WIN10_JP -DPDC_WIDE -DPDC_FORCE_UTF8 -DPDC_RIGHT_MARGIN=1 -DPDC_RESIZE_NO_CHECK
+	PDCOBJS += pdcdisp_sub.o
+endif
 
 ifeq ($(WIDE),Y)
 	CFLAGS += -DPDC_WIDE
@@ -85,7 +96,8 @@ ifneq ($(DEBUG),Y)
 endif
 
 $(LIBCURSES) : $(LIBOBJS) $(PDCOBJS) $(RESOURCE)
-	$(LIBEXE) $(LIBFLAGS) $@ $?
+	#$(LIBEXE) $(LIBFLAGS) $@ $?
+	$(LIBEXE) $(LIBFLAGS) $@ $^
 
 pdcurses.o: $(common)/pdcurses.rc
 	$(WINDRES) -i $(common)/pdcurses.rc pdcurses.o

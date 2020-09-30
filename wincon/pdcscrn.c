@@ -33,6 +33,14 @@ static short ansitocurs[16] =
 short pdc_curstoreal[16], pdc_curstoansi[16];
 short pdc_oldf, pdc_oldb, pdc_oldu;
 bool pdc_conemu, pdc_ansi;
+bool pdc_mintty;  /* mintty (winpty is needed) */
+bool pdc_winterm; /* Windows Terminal (windows 10) */
+
+#ifdef PDC_WIN10_JP
+/* for windows 10 jp */
+int ambiguous_width;
+int emoji_width;
+#endif
 
 enum { PDC_RESTORE_NONE, PDC_RESTORE_BUFFER };
 
@@ -405,6 +413,34 @@ int PDC_scr_open(void)
     pdc_conemu = !!str;
     pdc_ansi = pdc_conemu ? !strcmp(str, "ON") : FALSE;
 
+    /* mintty (winpty is needed) */
+    str = getenv("MSYSCON");
+    pdc_mintty = str ? !strcmp(str, "mintty.exe") : FALSE;
+
+    /* Windows Terminal (windows 10) */
+    str = getenv("WT_SESSION");
+    pdc_winterm = !!str;
+
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+
+    /* set ambiguous width */
+    str = getenv("PDCURSES_AMBIGUOUS_WIDTH");
+    if (str) {
+        ambiguous_width = !strcmp(str, "2") ? 2 : 1;
+    } else {
+        ambiguous_width = pdc_winterm ? 1 : 2;
+    }
+
+    /* set emoji width */
+    str = getenv("PDCURSES_EMOJI_WIDTH");
+    if (str) {
+        emoji_width = !strcmp(str, "2") ? 2 : 1;
+    } else {
+        emoji_width = 2;
+    }
+#endif
+
     GetConsoleScreenBufferInfo(pdc_con_out, &csbi);
     GetConsoleScreenBufferInfo(pdc_con_out, &orig_scr);
     GetConsoleMode(pdc_con_in, &old_console_mode);
@@ -521,7 +557,9 @@ int PDC_resize_screen(int nlines, int ncols)
     if (!prog_resize)
     {
         nlines = PDC_get_rows();
-        ncols = PDC_get_columns();
+
+        /* use right margin for windows console problem */
+        ncols = PDC_get_columns() + PDC_RIGHT_MARGIN;
     }
 
     if (nlines < 2 || ncols < 2)
@@ -552,6 +590,21 @@ int PDC_resize_screen(int nlines, int ncols)
         SetConsoleScreenBufferSize(pdc_con_out, size);
     }
     SetConsoleActiveScreenBuffer(pdc_con_out);
+
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+
+    /* clear console */
+    WORD  attr = 0x0007;
+    WCHAR ch = 0x0020;
+    DWORD len = size.X * size.Y;
+    COORD coord;
+    DWORD written;
+    coord.X = 0;
+    coord.Y = 0;
+    FillConsoleOutputAttribute(pdc_con_out, attr, len, coord, &written);
+    FillConsoleOutputCharacterW(pdc_con_out, ch, len, coord, &written);
+#endif
 
     PDC_flushinp();
 

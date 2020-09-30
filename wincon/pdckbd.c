@@ -605,12 +605,18 @@ int PDC_get_key(void)
         case WINDOW_BUFFER_SIZE_EVENT:
             if (REV.dwSize.Y != LINES || REV.dwSize.X != COLS)
             {
+#ifdef PDC_RESIZE_NO_CHECK
+                SP->resized = TRUE;
+                SP->key_code = TRUE;
+                return KEY_RESIZE;
+#else
                 if (!SP->resized)
                 {
                     SP->resized = TRUE;
                     SP->key_code = TRUE;
                     return KEY_RESIZE;
                 }
+#endif
             }
         }
     }

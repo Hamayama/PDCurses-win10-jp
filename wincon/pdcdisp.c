@@ -19,15 +19,24 @@ static bool in_italic = FALSE;
 
 void PDC_gotoyx(int row, int col)
 {
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+#else
     COORD coord;
+#endif
 
     PDC_LOG(("PDC_gotoyx() - called: row %d col %d from row %d col %d\n",
              row, col, SP->cursrow, SP->curscol));
 
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+    _set_console_cursor_position(row, col);
+#else
     coord.X = col;
     coord.Y = row;
 
     SetConsoleCursorPosition(pdc_con_out, coord);
+#endif
 }
 
 void _set_ansi_color(short f, short b, attr_t attr)
@@ -142,6 +151,14 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
     short fore, back;
     bool blink, ansi;
 
+    /* check buffer length */
+    if (len <= 0 || len > 512) {
+        return;
+    }
+
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+#else
     if (pdc_ansi && (lineno == (SP->lines - 1)) && ((x + len) == SP->cols))
     {
         len--;
@@ -152,6 +169,7 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
         pdc_ansi = TRUE;
         return;
     }
+#endif
 
     pair_content(PAIR_NUMBER(attr), &fore, &back);
     ansi = pdc_ansi || (fore >= 16 || back >= 16);
@@ -192,7 +210,12 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
         PDC_gotoyx(lineno, x);
         _set_ansi_color(fore, back, attr);
 #ifdef PDC_WIDE
+#ifdef PDC_WIN10_JP
+        /* for windows 10 jp */
+        _write_console_w(lineno, x, buffer, len);
+#else
         WriteConsoleW(pdc_con_out, buffer, len, NULL, NULL);
+#endif
 #else
         WriteConsoleA(pdc_con_out, buffer, len, NULL, NULL);
 #endif
@@ -200,8 +223,12 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
     else
     {
         CHAR_INFO buffer[512];
+#ifdef PDC_WIN10_JP
+        /* for windows 10 jp */
+#else
         COORD bufSize, bufPos;
         SMALL_RECT sr;
+#endif
         WORD mapped_attr;
 
         fore = pdc_curstoreal[fore];
@@ -233,6 +260,10 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
             buffer[j].Char.UnicodeChar = ch & A_CHARTEXT;
         }
 
+#ifdef PDC_WIN10_JP
+        /* for windows 10 jp */
+        _write_console_output(lineno, x, buffer, len);
+#else
         bufPos.X = bufPos.Y = 0;
         bufSize.X = len;
         bufSize.Y = 1;
@@ -242,6 +273,7 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
         sr.Right = x + len - 1;
 
         WriteConsoleOutput(pdc_con_out, buffer, bufSize, bufPos, &sr);
+#endif
     }
 }
 

@@ -144,6 +144,17 @@ int doupdate(void)
     else
         clearall = curscr->_clear;
 
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+
+    /* output all lines */
+    clearall = TRUE;
+
+    /* disable cursor visibility */
+    int vis_bkup = SP->visibility;
+    PDC_curs_set(0);
+#endif
+
     for (y = 0; y < SP->lines; y++)
     {
         PDC_LOG(("doupdate() - Transforming line %d of %d: %s\n",
@@ -209,8 +220,18 @@ int doupdate(void)
 
     curscr->_clear = FALSE;
 
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+
+    /* set cursor position*/
+    PDC_gotoyx(curscr->_cury, curscr->_curx);
+
+    /* enable cursor visibility */
+    PDC_curs_set(vis_bkup);
+#else
     if (SP->visibility)
         PDC_gotoyx(curscr->_cury, curscr->_curx);
+#endif
 
     SP->cursrow = curscr->_cury;
     SP->curscol = curscr->_curx;

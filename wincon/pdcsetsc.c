@@ -102,6 +102,15 @@ int PDC_set_blink(bool blinkon)
             if (!pdc_conemu)
                 SetConsoleMode(pdc_con_out, 0x0010); /* LVB */
         }
+#ifdef PDC_WIN10_JP
+        /* for windows 10 jp */
+
+        /* mintty requires winpty for running PDCurses and it supports
+           only 16 colors */
+        if (pdc_mintty) {
+            COLORS = 16;
+        }
+#endif
     }
 
     if (blinkon)

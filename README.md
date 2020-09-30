@@ -1,65 +1,201 @@
-Welcome to PDCurses!
-====================
+# PDCurses-win10-jp
 
-PDCurses is an implementation of X/Open curses for multiple platforms.
-The latest version can be found at:
+![image](image.png)
 
-   https://pdcurses.org/
+## 概要
+- PDCurses の Windows Console 用ポート (wincon) を、  
+  Windows 10 上での日本語表示が改善するように、改造したものです。
 
-For changes, see the [History] file. The main documentation is now in
-the [docs] directory.
+- (Windows 8.1 までは、非改造でも表示できていましたが、  
+  Winddows 10 で、Windows Console API の互換性がなくなり、  
+  日本語表示が大きく乱れるようになりました)
 
-
-Legal Stuff
------------
-
-The core package is in the public domain, but small portions of PDCurses
-are subject to copyright under various licenses.  Each directory
-contains a README.md file, with a section titled "Distribution Status"
-which describes the status of the files in that directory.
-
-If you use PDCurses in an application, an acknowledgement would be
-appreciated, but is not mandatory. If you make corrections or
-enhancements to PDCurses, please forward them to the current maintainer
-for the benefit of other users.
-
-This software is provided AS IS with NO WARRANTY whatsoever.
+- オリジナルの PDCurses の情報は、以下にあります。  
+  https://github.com/wmcbrine/PDCurses  
+  v3.9 (コミット 618e0aa) (2019-12-22) をベースに改造を行いました。
 
 
-Ports
------
+## 変更点
+- オリジナルからの変更点を、以下に示します。
 
-PDCurses has been ported to DOS, OS/2, Windows, X11 and SDL. A directory
-containing the port-specific source files exists for each of these
-platforms.
+1. トップディレクトリに Makefile と Makefile_win8 を追加  
+   MSYS2/MinGW-w64 上で wincon をビルドするための Makefile を追加した。  
+   Makefile が Windows 10 用で、Makefile_win8 が Windows 8.1 用になる。  
+   make を実行すると、0000_dist というフォルダが生成されて、  
+   その中に成果物が格納される。
 
-Build instructions are in the README.md file for each platform:
+2. バージョンフラグの追加  
+   ( curses.h  pdcurses/initscr.c )  
+   PDC_get_version() で取得できるバージョン情報の構造体 (PDC_VERSION)  
+   の flags メンバに、PDC_VFLAG_WIN10_JP ( 0x4000 ) の値を追加した。
 
--  [DOS]
--  [OS/2]
--  [SDL 1.x]
--  [SDL 2.x]
--  [Windows]
--  [X11]
+3. 内部キャッシュの無効化  
+   ( pdcurses/refresh.c )  
+   もともと、refresh (doupdate) 時は、差分だけを描画するようになっていた。  
+   しかし、文字幅の変化による更新もれが発生したため、  
+   毎回、画面全体を描画するように変更した。
+
+4. wincon の Makefile の変更  
+   ( wincon/Makefile )  
+   WIN10_JP フラグの追加等。
+
+5. Windows Console API の変更対応  
+   ( wincon/pdcwin.h  wincon/pdcdisp.c  wincon/pdcdisp_sub.c )  
+   SetConsoleCursorPosition() が、Windows 10 では、  
+   文字数ではなく文字幅単位 (全角文字を 2 と数える) で、  
+   X座標を指定するように変わったため、対応した。  
+   (Windows 8.1 までは、文字数で指定するようになっていた。  
+   これは、日本語版 Windows 固有の動作だったのかもしれない)  
+   また、画面の幅を超えて表示しようとした場合には、  
+   はみ出した部分を出力しないようにした。  
+   また、ゼロ幅スペース (U+200B) については、  
+   出力しないでスキップするようにした。
+
+6. 文字幅を取得するための処理を追加  
+   ( wincon/pdcwin.h  wincon/pdcscrn.c  wincon/pdcdisp_sub.c )  
+   Unicode の EastAsianWidth.txt および emoji-data.txt を元に、  
+   文字幅を取得する処理を追加した。  
+   ( https://unicode.org/Public/UNIDATA/EastAsianWidth.txt  
+   https://unicode.org/Public/UNIDATA/emoji/emoji-data.txt )  
+   また、環境変数 PDCURSES_AMBIGUOUS_WIDTH と PDCURSES_EMOJI_WIDTH により、  
+   あいまいな幅の文字 (ambiguous width character) と 絵文字の幅を指定可能  
+   (それぞれ 1 か 2 を指定する) にした。  
+   理論上は、表示するフォントの幅と、この環境変数の設定が一致していれば、  
+   うまく表示されるはずである。  
+   しかし、mintty (winpty が必要) や ConEmu では、実際に表示しているフォントとは別に、  
+   裏に隠れているコマンドプロンプトのフォントの情報が内部で使用されているようで、  
+   どう設定してもうまくいかなかった (カーソルの表示位置がずれたりする) 。  
+   結局、これらの環境変数は、現状は、設定しない方がよい。
+
+7. 画面の右端に余白を設ける機能を追加  
+   ( wincon/pdcwin.h  wincon/pdcgetsc.c )  
+   シンボル PDC_RIGHT_MARGIN を define することで、  
+   画面の右端に余白を設定できるようにした (0 か 1 を指定する) 。  
+   これは、Windows Console API (WriteConsoleW) で画面の右端に文字を表示すると、  
+   自動改行等により不具合が発生するようにみえたため、追加した。  
+   (ただ、デバッグ中の勘違いだったのかもしれない。。。)
+
+8. mintty (winpty が必要) のときは、色数を 16 色に制限する処理を追加  
+   ( wincon/pdcsetsc.c )  
+   これは、winpty の制約と思われる (16 色しか表示できない)。
+
+9. 画面のリサイズイベントの発生条件を緩和  
+   ( wincon/pdckbd.c )  
+   もともと、リサイズイベントの発生後は、resize_term() を呼ぶまでは、  
+   次回のリサイズイベントが発生しないようにガードされていた。  
+   これを、シンボル PDC_RESIZE_NO_CHECK を define することで、  
+   このガードを外すことができるようにした。
 
 
-Distribution Status
--------------------
+## インストール方法
+- MSYS2/MinGW-w64 (64bit) 環境でのインストール手順を、以下に示します。
 
-All files in this directory (not including subdirectories) are released
-to the public domain.
+1. MSYS2/MinGW-w64 (64bit) のインストール  
+   事前に MSYS2/MinGW-w64 (64bit) がインストールされている必要があります。  
+   以下のページを参考に、開発環境のインストールを実施ください。  
+   https://gist.github.com/Hamayama/eb4b4824ada3ac71beee0c9bb5fa546d  
+   (すでにインストール済みであれば本手順は不要です)
+
+2. PDCurses のソースの展開  
+   本サイト ( https://github.com/Hamayama/PDCurses-win10-jp ) のソースを、  
+   (Download Zip ボタン等で) ダウンロードして、作業用のフォルダに展開してください。  
+   例えば、作業用のフォルダを c:\work とすると、  
+   c:\work\PDCurses の下にファイル一式が配置されるように展開してください。  
+   (注意) 作業用フォルダのパスには、空白を入れないようにしてください。
+
+3. PDCurses のコンパイル  
+   プログラムメニューから MSYS2 の MinGW 64bit Shell を起動して、以下のコマンドを実行してください。  
+   ( c:\work にソースを展開した場合)  
+   ＜Windows 10 のとき＞
+   ```
+     cd /c/work/PDCurses
+     make
+   ```
+   ＜Windows 8.1 のとき＞
+   ```
+     cd /c/work/PDCurses
+     make -f Makefile_win8
+   ```
+
+4. PDCurses のインストール  
+   コンパイルに成功すると、PDCurses フォルダ内の 0000_dist フォルダの中に、  
+   bin フォルダと include フォルダと lib フォルダが生成されます。  
+   bin フォルダの中身を、C:\msys64\mingw64\bin フォルダ内にコピーしてください。  
+   include フォルダの中身を、C:\msys64\mingw64\include フォルダ内にコピーしてください。  
+   lib フォルダの中身を、C:\msys64\mingw64\lib フォルダ内にコピーしてください。  
+   
+   もし、Lem エディタ ( https://github.com/cxxxr/lem ) のライブラリとして使用する場合には、  
+   C:\msys64\mingw64\include フォルダ内の pdcurses.h をさらにコピーして、  
+   ncurses.h という名前で同じフォルダ内 ( C:\msys64\mingw64\include ) に配置してください。  
+
+- 以上です。
 
 
-Maintainer
-----------
+## 使い方
+- MinGW 用のサンプルソースを demos_mingw フォルダに格納しました。  
+  widetest.c が、C のサンプルソースです。  
+  0000_compile.bat を実行すると、コンパイルを行い、widetest.exe が生成されます。  
+  このファイルを実行すると、カラフルな日本語が表示されます。
 
-William McBrine <wmcbrine@gmail.com>
 
-[History]: docs/HISTORY.md
-[docs]: docs/README.md
-[DOS]: dos/README.md
-[OS/2]: os2/README.md
-[SDL 1.x]: sdl1/README.md
-[SDL 2.x]: sdl2/README.md
-[Windows]: wincon/README.md
-[X11]: x11/README.md
+## その他 問題点等
+1. 座標の指定について  
+   現状、座標の指定については、文字単位で行うようになっている。  
+   すなわち、画面左上の「あいう」の後ろに文字を表示したい場合には、  
+   mvaddstr(0, 3, "え"); のように指定することになる。  
+   しかし、例えば Linux の ncurses では、セル単位の指定になっており、  
+   mvaddstr(0, 6, "え"); のように指定することになる。  
+   この非互換性は、問題になるかもしれない。  
+   (しかし、セル単位の指定にした場合、ゼロ幅の文字が連続したときに、  
+   途中を指定することができないという別の問題が生じる。。。)
+
+2. UTF-16 のサロゲートペアの文字 (U+10000 以上) については、  
+   現状、すべて全角幅扱いとしており不完全
+
+3. ゼロ幅文字については、現状、ゼロ幅スペース (U+200B) のみ考慮している
+
+4. 合字については、現状、非対応
+
+5. ConEmu で、256 色モードにすると、色付けの範囲が変になる (Windows 10)  
+   (16 色モードは正常)
+
+6. ConEmu で、あいまいな幅の文字 (ambiguous width character) を表示すると、  
+   カーソルの表示位置がずれる (Windows 10)  
+   (表示幅が半角で、内部情報が全角になっているためと思われる)
+
+7. mintty (winpty が必要) で、あいまいな幅の文字 (ambiguous width character)  
+   を表示すると、カーソルの表示位置がずれる (Windows 10)  
+   (表示幅が半角で、内部情報が全角になっているためと思われる)
+
+8. 画面をリサイズすると、落ちることがある  
+   → リサイズ直後に変更前の範囲に文字を書き込むと発生すると思われる。  
+   リサイズイベントの受信後は、一定時間書き込まないようにすることで、  
+   発生頻度を下げられる。しかし、完全になくすことはできなさそう。  
+   (Windows Console API 側でガードすべき問題だと思うが。。。)
+
+9. ConEmu で画面幅を半角50桁未満にすると、高確率で落ちる
+
+10. コマンドプロンプト (cmd.exe) で、絵文字を表示できない
+
+11. ConEmu で、絵文字を表示できない (Windows 10)
+
+12. mintty (winpty が必要) で、絵文字を表示できない (Windows 10)
+
+13. Windows Terminal で、マウスイベントが取れない (Windows 10)  
+    (Windows Console API のマウスイベント関連が未実装とのこと)
+
+
+## 環境等
+- OS
+  - Windows 10 (version 1909) (64bit)
+  - Windows 8.1 (64bit)
+- 環境
+  - MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev1, Built by MSYS2 project))
+- ライセンス
+  - オリジナルと同様とします
+
+## 履歴
+- 2020-10-1  v3.9-jp0001 Windows 10 日本語対応
+
+
+(2020-10-1)
