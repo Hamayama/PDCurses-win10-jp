@@ -52,7 +52,7 @@
    はみ出した部分を出力しないようにした。  
    また、ゼロ幅スペース (U+200B) については、  
    出力しないでスキップするようにした。  
-   (実装の詳細については、wincon/pdcdisp_sub.c を参照)
+   (実装の詳細については、[wincon/pdcdisp_sub.c][1] を参照)
 
 6. 文字幅を取得するための処理を追加  
    ( wincon/pdcwin.h  wincon/pdcscrn.c  wincon/pdcdisp_sub.c )  
@@ -60,7 +60,7 @@
    文字幅を取得する処理を追加した。  
    ( https://unicode.org/Public/UNIDATA/EastAsianWidth.txt  
    https://unicode.org/Public/UNIDATA/emoji/emoji-data.txt )  
-   (実装の詳細については、wincon/pdcdisp_sub.c を参照)  
+   (実装の詳細については、[wincon/pdcdisp_sub.c][1] を参照)  
    
    また、環境変数 PDCURSES_AMBIGUOUS_WIDTH と PDCURSES_EMOJI_WIDTH により、  
    あいまいな幅の文字 (ambiguous width character) と 絵文字の幅を指定可能にした。  
@@ -127,11 +127,12 @@
 4. PDCurses のインストール  
    コンパイルに成功すると、PDCurses フォルダ内の 0000_dist フォルダの中に、  
    bin フォルダと include フォルダと lib フォルダが生成されます。  
+   
    bin フォルダの中身を、C:\msys64\mingw64\bin フォルダ内にコピーしてください。  
    include フォルダの中身を、C:\msys64\mingw64\include フォルダ内にコピーしてください。  
    lib フォルダの中身を、C:\msys64\mingw64\lib フォルダ内にコピーしてください。  
    
-   もし、Lem エディタ ( https://github.com/cxxxr/lem ) のライブラリとして使用する場合には、  
+   (注意) もし、Lem エディタ ( https://github.com/cxxxr/lem ) のライブラリとして使用する場合には、  
    C:\msys64\mingw64\include フォルダ内の pdcurses.h をさらにコピーして、  
    ncurses.h という名前で同じフォルダ内 ( C:\msys64\mingw64\include ) に配置してください。  
    (この名前のヘッダーファイルしか認識しないため)
@@ -198,11 +199,14 @@
   - Windows 10 (version 1909) (64bit)
   - Windows 8.1 (64bit)
 - 環境
-  - MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev1, Built by MSYS2 project))
+  - MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev1, Built by MSYS2 project)) (Windows 10)
+  - MSYS2/MinGW-w64 (64bit) (gcc version 9.2.0 (Rev2, Built by MSYS2 project)) (Windows 8.1)
 - 端末
   - コマンドプロンプト (cmd.exe)
-  - ConEmu 200713
-  - mintty 3.3.0 (winpty 0.4.3 が必要)
+  - ConEmu 200713 (Windows 10)
+  - ConEmu 191012 (Windows 8.1)
+  - mintty 3.3.0 (winpty 0.4.3 が必要) (Windows 10)
+  - mintty 3.1.4 (winpty 0.4.3 が必要) (Windows 8.1)
   - Windows Terminal 1.3.2651.0 (Windows 10 のみ)
 - ライセンス
   - オリジナルと同様とします
@@ -211,4 +215,9 @@
 - 2020-10-1  v3.9-jp0001 Windows 10 日本語対応
 
 
-(2020-10-1)
+(2020-10-3)
+
+
+[1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
+
+
