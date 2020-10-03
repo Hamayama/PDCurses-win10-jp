@@ -1,6 +1,8 @@
 # PDCurses-win10-jp
 
-![image](image.png)
+|OK (Windows 10)|NG (Windows 10)|
+|---|---|
+|![image](image.png)|![image](image_NG.png)|
 
 ## 概要
 - PDCurses の Windows Console 用ポート (wincon) を、  
