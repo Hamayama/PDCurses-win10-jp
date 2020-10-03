@@ -223,7 +223,7 @@ int doupdate(void)
 #ifdef PDC_WIN10_JP
     /* for windows 10 jp */
 
-    /* set cursor position*/
+    /* set cursor position */
     PDC_gotoyx(curscr->_cury, curscr->_curx);
 
     /* enable cursor visibility */

@@ -591,9 +591,7 @@ int PDC_resize_screen(int nlines, int ncols)
     }
     SetConsoleActiveScreenBuffer(pdc_con_out);
 
-#ifdef PDC_WIN10_JP
-    /* for windows 10 jp */
-
+#ifdef PDC_CLEAR_ON_RESIZE
     /* clear console */
     WORD  attr = 0x0007;
     WCHAR ch = 0x0020;
