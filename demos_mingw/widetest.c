@@ -38,7 +38,7 @@ int main(void)
     init_color(14, 1000, 1000,    0);
     init_color(15, 1000, 1000, 1000);
     for (i = 1; i < 16; i++) {
-        init_pair( i,  i, -1);
+        init_pair(i, i, -1);
     }
 
     /* display */
@@ -51,6 +51,6 @@ int main(void)
     }
     refresh();
 
-    /* wait for imput */
+    /* wait for input */
     getchar();
 }
