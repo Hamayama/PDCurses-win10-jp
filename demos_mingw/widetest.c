@@ -9,7 +9,7 @@
 int main(void)
 {
     int i;
-    char *str = "1234567890あいうえおかきくけこあいうえお";
+    char *str = "1234567890あいうえおかきくけこさしすせそ";
 
     /* initialize */
     initscr();
@@ -45,7 +45,7 @@ int main(void)
     clear();
     for (i = 0; i < LINES; i++) {
         attrset(COLOR_PAIR(i % 16));
-        mvaddstr(i, 0, str);
+        mvaddstr(i,  0, str);
         attrset(COLOR_PAIR((i + 1) % 16));
         mvaddstr(i, 25, str);
     }
