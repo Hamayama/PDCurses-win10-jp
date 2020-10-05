@@ -23,10 +23,11 @@
 1. トップディレクトリに Makefile と Makefile_win8 を追加  
    MSYS2/MinGW-w64 環境で wincon をビルドするための Makefile を追加した。  
    Makefile が Windows 10 用で、Makefile_win8 が Windows 8.1 用になる。  
+   (基本的に、Makefile_win8 を使うと、非改造のビルドになる)  
    make を実行すると、0000_dist というフォルダが生成されて、その中に成果物が格納される。  
    (成果物のヘッダーファイルについては、include/pdcurses.h を生成して、  
-   そこから、本来のヘッダーファイルを参照するようにしている。  
-   これは、MSYS2/MinGW-w64 の PDCurses パッケージの方式に合わせたものである)
+   そこから、本来のヘッダーファイルを参照するようにした。  
+   (これは、MSYS2/MinGW-w64 の PDCurses パッケージの方式に合わせたものである))
 
 2. バージョンフラグの追加  
    ( curses.h  pdcurses/initscr.c )  
@@ -81,7 +82,7 @@
    これは、Windows Console API (WriteConsoleW) で画面の右端に文字を表示すると、  
    自動改行等により不具合が発生するようにみえたため、追加した。  
    (ただ、デバッグ中の勘違いだったのかもしれない。。。)  
-   現状、Makefile では、Windows 10 の場合のみ 1 を指定するようにしている。
+   現状、Makefile では、Windows 10 の場合のみ、1 を指定するようにしている。
 
 8. mintty (winpty が必要) のときは、色数を 16 色に制限する処理を追加  
    ( wincon/pdcsetsc.c )  
@@ -93,13 +94,13 @@
    次回のリサイズイベントが発生しないようにガードされていた。  
    これを、シンボル PDC_RESIZE_NO_CHECK を define することで、  
    このガードを外すことができるようにした。  
-   現状、Makefile では、Windows 10 の場合のみガードを外すようにしている。
+   現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
 10. 画面リサイズ時の画面クリア  
     ( wincon/pdcscrn.c )  
     シンボル PDC_CLEAR_ON_RESIZE を define することで、  
     resize_term() の実行時に画面をクリアできるようにした。  
-    現状、Makefile では、Windows 10 の場合のみ画面をクリアするようにしている。
+    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
 
 ## インストール方法
@@ -224,7 +225,7 @@
 - 2020-10-3  v3.9-jp0002 シンボル PDC_CLEAR_ON_RESIZE を追加
 
 
-(2020-10-3)
+(2020-10-5)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
