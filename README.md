@@ -22,7 +22,7 @@
 
 1. トップディレクトリに Makefile と Makefile_win8 を追加  
    MSYS2/MinGW-w64 環境で wincon をビルドするための Makefile を追加した。  
-   Makefile が Windows 10 用で、Makefile_win8 が Windows 8.1 用になる。  
+   Makefile が Windows 10 用で、Makefile_win8 が Windows 8.1 以前用になる。  
    (基本的に、Makefile_win8 を使うと、非改造のビルドになる)  
    make を実行すると、0000_dist というフォルダが生成されて、その中に成果物が格納される。  
    (成果物のヘッダーファイルについては、include/pdcurses.h を生成して、  
@@ -104,7 +104,16 @@
 
 
 ## インストール方法
-- MSYS2/MinGW-w64 (64bit) 環境でのインストール手順を、以下に示します。
+- MSYS2/MinGW-w64 (64bit) 環境でのインストール手順を、以下に示します。  
+  A または B のどちらかの方法で、インストールを実施ください。
+
+＜A：パッケージファイルでインストールする場合＞
+
+1. MSYS2/MinGW-w64 (64bit/32bit) 用のパッケージファイルを用意しています。  
+   以下のページを参照して、インストールを実施ください。  
+   https://github.com/Hamayama/PDCurses-win10-jp-package
+
+＜B：ソースコードからビルドしてインストールする場合＞
 
 1. MSYS2/MinGW-w64 (64bit) のインストール  
    事前に MSYS2/MinGW-w64 (64bit) がインストールされている必要があります。  
@@ -122,12 +131,12 @@
 3. PDCurses のコンパイル  
    プログラムメニューから MSYS2 の MinGW 64bit Shell を起動して、以下のコマンドを実行してください。  
    ( c:\work にソースを展開した場合)  
-   ＜Windows 10 のとき＞
+   ＜Windows 10 の場合＞
    ```
      cd /c/work/PDCurses
      make
    ```
-   ＜Windows 8.1 のとき＞
+   ＜Windows 8.1 以前の場合＞
    ```
      cd /c/work/PDCurses
      make -f Makefile_win8
@@ -225,7 +234,7 @@
 - 2020-10-3  v3.9-jp0002 シンボル PDC_CLEAR_ON_RESIZE を追加
 
 
-(2020-10-5)
+(2020-10-7)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
