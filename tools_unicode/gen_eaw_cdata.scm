@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; gen_eaw_cdata.scm
-;; 2020-10-1 v1.00
+;; 2020-10-9 v1.01
 ;;
 ;; ＜内容＞
 ;;   Gauche を使用して、C言語用の文字幅データを生成するためのツールです。
@@ -220,7 +220,7 @@
 
 ;; 使い方の表示
 (define (usage out code)
-  (format out "Usage: gosh gen_eaw_cdata.scm mode(=0-4)~%")
+  (format out "Usage: gosh gen_eaw_cdata.scm mode(=0-3)~%")
   (exit code))
 
 ;; メイン処理
