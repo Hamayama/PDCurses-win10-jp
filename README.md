@@ -14,38 +14,38 @@
 
 - オリジナルの PDCurses の情報は、以下にあります。  
   https://github.com/wmcbrine/PDCurses  
-  v3.9 (コミット 618e0aa) (2019-12-22) をベースに改造を行いました。
+  そこの v3.9 (コミット 618e0aa) (2019-12-22) をベースに改造を行いました。
 
 
 ## 変更点
 - オリジナルからの変更点を、以下に示します。
 
-1. トップディレクトリに Makefile と Makefile_win8 を追加  
+1. トップディレクトリに Makefile と Makefile_win8 を追加。  
    MSYS2/MinGW-w64 環境で wincon をビルドするための Makefile を追加した。  
    Makefile が Windows 10 用で、Makefile_win8 が Windows 8.1 以前用になる。  
    (基本的に、Makefile_win8 を使うと、非改造のビルドになる)  
    make を実行すると、0000_dist というフォルダが生成されて、その中に成果物が格納される。  
-   (成果物のヘッダーファイルについては、include/pdcurses.h を生成して、  
+   (成果物のヘッダーファイルについては、`include/pdcurses.h` を生成して、  
    そこから、本来のヘッダーファイルを参照するようにした。  
    (これは、MSYS2/MinGW-w64 の PDCurses パッケージの方式に合わせたものである))
 
-2. バージョンフラグの追加  
-   ( curses.h  pdcurses/initscr.c )  
+2. バージョンフラグの追加。  
+   `( curses.h  pdcurses/initscr.c )`。  
    PDC_get_version() で取得できるバージョン情報の構造体 (PDC_VERSION)  
    の flags メンバに、PDC_VFLAG_WIN10_JP ( 0x4000 ) の値を追加した。
 
-3. 内部キャッシュの無効化  
-   ( pdcurses/refresh.c )  
+3. 内部キャッシュの無効化。  
+   `( pdcurses/refresh.c )`  
    もともと、refresh (doupdate) 時は、差分だけを描画する処理になっていた。  
    しかし、文字幅の変化による更新もれが発生したため、  
    毎回、画面全体を描画するように変更した。
 
-4. wincon の Makefile の変更  
-   ( wincon/Makefile )  
+4. wincon の Makefile の変更。  
+   `( wincon/Makefile )`  
    WIN10_JP フラグの追加等。
 
-5. Windows Console API の変更対応  
-   ( wincon/pdcwin.h  wincon/pdcdisp.c  wincon/pdcdisp_sub.c )  
+5. Windows Console API の変更対応。  
+   `( wincon/pdcwin.h  wincon/pdcdisp.c  wincon/pdcdisp_sub.c )`  
    SetConsoleCursorPosition() が、Windows 10 では、  
    文字数ではなく文字幅単位 (全角文字を 2 と数える) で、  
    X座標を指定するように変わったため、対応した。  
@@ -57,12 +57,14 @@
    出力しないでスキップするようにした。  
    (実装の詳細については、[wincon/pdcdisp_sub.c][1] を参照)
 
-6. 文字幅を取得するための処理を追加  
-   ( wincon/pdcwin.h  wincon/pdcscrn.c  wincon/pdcdisp_sub.c )  
+6. 文字幅を取得するための処理を追加。  
+   `( wincon/pdcwin.h  wincon/pdcscrn.c  wincon/pdcdisp_sub.c )`  
    Unicode の EastAsianWidth.txt および emoji-data.txt を元に、  
    文字幅を取得する処理を追加した。  
-   ( https://unicode.org/Public/UNIDATA/EastAsianWidth.txt  
-   https://unicode.org/Public/UNIDATA/emoji/emoji-data.txt )  
+   (Unicode データの入手先は以下。  
+   https://unicode.org/Public/UNIDATA/EastAsianWidth.txt  
+   https://unicode.org/Public/UNIDATA/emoji/emoji-data.txt  
+   また、データ抽出用のツールは、[tools_unicode][2] フォルダに入れておいた)  
    (実装の詳細については、[wincon/pdcdisp_sub.c][1] を参照)  
    
    また、環境変数 PDCURSES_AMBIGUOUS_WIDTH と PDCURSES_EMOJI_WIDTH により、  
@@ -75,8 +77,8 @@
    どう設定してもうまくいかなかった (カーソルの表示位置がずれたりする) 。  
    結局、これらの環境変数は、現状、設定する意味がない。
 
-7. 画面の右端に余白を設ける機能を追加  
-   ( wincon/pdcwin.h  wincon/pdcgetsc.c )  
+7. 画面の右端に余白を設ける機能を追加。  
+   `( wincon/pdcwin.h  wincon/pdcgetsc.c )`  
    シンボル PDC_RIGHT_MARGIN を define することで、  
    画面の右端に余白を設定できるようにした (0 か 1 を指定する) 。  
    これは、Windows Console API (WriteConsoleW) で画面の右端に文字を表示すると、  
@@ -84,20 +86,20 @@
    (ただ、デバッグ中の勘違いだったのかもしれない。。。)  
    現状、Makefile では、Windows 10 の場合のみ、1 を指定するようにしている。
 
-8. mintty (winpty が必要) のときは、色数を 16 色に制限する処理を追加  
-   ( wincon/pdcsetsc.c )  
+8. mintty (winpty が必要) のときは、色数を 16 色に制限する処理を追加。  
+   `( wincon/pdcsetsc.c )`  
    これは、winpty の制約と思われる (16 色しか表示できない)。
 
-9. 画面のリサイズイベントの発生条件を緩和  
-   ( wincon/pdckbd.c )  
+9. 画面のリサイズイベントの発生条件を緩和。  
+   `( wincon/pdckbd.c )`  
    もともと、リサイズイベントの発生後は、resize_term() を呼ぶまでは、  
    次回のリサイズイベントが発生しないようにガードされていた。  
    これを、シンボル PDC_RESIZE_NO_CHECK を define することで、  
    このガードを外すことができるようにした。  
    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
-10. 画面リサイズ時の画面クリア  
-    ( wincon/pdcscrn.c )  
+10. 画面リサイズ時の画面クリア。  
+    `( wincon/pdcscrn.c )`  
     シンボル PDC_CLEAR_ON_RESIZE を define することで、  
     resize_term() の実行時に画面をクリアできるようにした。  
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
@@ -146,20 +148,20 @@
    コンパイルに成功すると、PDCurses フォルダ内の 0000_dist フォルダの中に、  
    bin フォルダと include フォルダと lib フォルダが生成されます。  
    
-   bin フォルダの中身を、C:\msys64\mingw64\bin フォルダ内にコピーしてください。  
-   include フォルダの中身を、C:\msys64\mingw64\include フォルダ内にコピーしてください。  
-   lib フォルダの中身を、C:\msys64\mingw64\lib フォルダ内にコピーしてください。  
+   bin フォルダの中身を、`C:\msys64\mingw64\bin` フォルダ内にコピーしてください。  
+   include フォルダの中身を、`C:\msys64\mingw64\include` フォルダ内にコピーしてください。  
+   lib フォルダの中身を、`C:\msys64\mingw64\lib` フォルダ内にコピーしてください。  
    
    (注意) もし、Lem エディタ ( https://github.com/cxxxr/lem ) のライブラリとして使用する場合には、  
-   C:\msys64\mingw64\include フォルダ内の pdcurses.h をさらにコピーして、  
-   ncurses.h という名前で同じフォルダ内 ( C:\msys64\mingw64\include ) に配置してください。  
+   `C:\msys64\mingw64\include` フォルダ内の pdcurses.h をさらにコピーして、  
+   ncurses.h という名前で同じフォルダ内 ( `C:\msys64\mingw64\include` ) に配置してください。  
    (この名前のヘッダーファイルしか認識しないため)
 
 - 以上です。
 
 
 ## 使い方
-- MinGW 用のサンプルソースを demos_mingw フォルダに格納しました。  
+- MinGW 用のサンプルソースを [demos_mingw][3] フォルダに格納しました。  
   widetest.c が C のサンプルソースです。  
   0000_compile.bat を実行すると、コンパイルを行い、widetest.exe が生成されます。  
   このファイルを実行すると、カラフルな日本語が表示されます。
@@ -168,10 +170,10 @@
 ## その他 問題点等
 1. 座標の指定について  
    現状、座標の指定については、文字単位で行うようになっている。  
-   すなわち、画面左上の「あいう」の後ろに文字を表示したい場合には、  
-   mvaddstr(0, 3, "え"); のように指定することになる。  
+   すなわち、画面左上の「`あいう`」の後ろに文字を表示したい場合には、  
+   `mvaddstr(0, 3, "え");` のように指定することになる。  
    しかし、例えば Linux の ncurses では、セル単位の指定になっており、  
-   mvaddstr(0, 6, "え"); のように指定することになる。  
+   `mvaddstr(0, 6, "え");` のように指定することになる。  
    この非互換性は、問題になるかもしれない。  
    (しかし、セル単位の指定にした場合、ゼロ幅の文字が連続したときに、  
    途中を指定することができないという別の問題が生じるが。。。)
@@ -194,13 +196,13 @@
    を表示すると、カーソルの表示位置がずれる (Windows 10)  
    (表示幅が半角で、内部情報が全角になっているためと思われる)
 
-8. 画面をリサイズすると、落ちることがある  
+8. 画面をリサイズすると、異常終了することがある  
    → リサイズ直後に変更前の範囲に文字を書き込むと発生するもよう。  
    リサイズイベントの受信後は、一定時間書き込まないようにすることで、  
    発生頻度を下げられる。しかし、完全になくすことはできなさそう。  
    (Windows Console API 側でガードすべき問題だと思うが。。。)
 
-9. ConEmu で、画面幅を半角50桁未満にすると、高確率で落ちる
+9. ConEmu で、画面幅を半角50桁未満にすると、高確率で異常終了する
 
 10. コマンドプロンプト (cmd.exe) で、絵文字を表示できない
 
@@ -234,9 +236,11 @@
 - 2020-10-3  v3.9-jp0002 シンボル PDC_CLEAR_ON_RESIZE を追加
 
 
-(2020-10-7)
+(2020-10-9)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
+[2]:https://github.com/Hamayama/PDCurses-win10-jp/tree/master/tools_unicode
+[3]:https://github.com/Hamayama/PDCurses-win10-jp/tree/master/demos_mingw
 
 
