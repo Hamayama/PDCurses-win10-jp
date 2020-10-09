@@ -14,13 +14,13 @@
 
 - オリジナルの PDCurses の情報は、以下にあります。  
   https://github.com/wmcbrine/PDCurses  
-  そこの v3.9 (コミット 618e0aa) (2019-12-22) をベースに改造を行いました。
+  その v3.9 (コミット 618e0aa) (2019-12-22) をベースに改造を行いました。
 
 
 ## 変更点
 - オリジナルからの変更点を、以下に示します。
 
-1. トップディレクトリに Makefile と Makefile_win8 を追加。  
+1. トップディレクトリに Makefile と Makefile_win8 を追加  
    MSYS2/MinGW-w64 環境で wincon をビルドするための Makefile を追加した。  
    Makefile が Windows 10 用で、Makefile_win8 が Windows 8.1 以前用になる。  
    (基本的に、Makefile_win8 を使うと、非改造のビルドになる)  
@@ -29,22 +29,22 @@
    そこから、本来のヘッダーファイルを参照するようにした。  
    (これは、MSYS2/MinGW-w64 の PDCurses パッケージの方式に合わせたものである))
 
-2. バージョンフラグの追加。  
-   `( curses.h  pdcurses/initscr.c )`。  
+2. バージョンフラグの追加  
+   `( curses.h  pdcurses/initscr.c )`  
    PDC_get_version() で取得できるバージョン情報の構造体 (PDC_VERSION)  
    の flags メンバに、PDC_VFLAG_WIN10_JP ( 0x4000 ) の値を追加した。
 
-3. 内部キャッシュの無効化。  
+3. 内部キャッシュの無効化  
    `( pdcurses/refresh.c )`  
    もともと、refresh (doupdate) 時は、差分だけを描画する処理になっていた。  
    しかし、文字幅の変化による更新もれが発生したため、  
    毎回、画面全体を描画するように変更した。
 
-4. wincon の Makefile の変更。  
+4. wincon の Makefile の変更  
    `( wincon/Makefile )`  
    WIN10_JP フラグの追加等。
 
-5. Windows Console API の変更対応。  
+5. Windows Console API の変更対応  
    `( wincon/pdcwin.h  wincon/pdcdisp.c  wincon/pdcdisp_sub.c )`  
    SetConsoleCursorPosition() が、Windows 10 では、  
    文字数ではなく文字幅単位 (全角文字を 2 と数える) で、  
@@ -77,7 +77,7 @@
    どう設定してもうまくいかなかった (カーソルの表示位置がずれたりする) 。  
    結局、これらの環境変数は、現状、設定する意味がない。
 
-7. 画面の右端に余白を設ける機能を追加。  
+7. 画面の右端に余白を設ける機能を追加  
    `( wincon/pdcwin.h  wincon/pdcgetsc.c )`  
    シンボル PDC_RIGHT_MARGIN を define することで、  
    画面の右端に余白を設定できるようにした (0 か 1 を指定する) 。  
@@ -86,11 +86,11 @@
    (ただ、デバッグ中の勘違いだったのかもしれない。。。)  
    現状、Makefile では、Windows 10 の場合のみ、1 を指定するようにしている。
 
-8. mintty (winpty が必要) のときは、色数を 16 色に制限する処理を追加。  
+8. mintty (winpty が必要) のときは、色数を 16 色に制限する処理を追加  
    `( wincon/pdcsetsc.c )`  
    これは、winpty の制約と思われる (16 色しか表示できない)。
 
-9. 画面のリサイズイベントの発生条件を緩和。  
+9. 画面のリサイズイベントの発生条件を緩和  
    `( wincon/pdckbd.c )`  
    もともと、リサイズイベントの発生後は、resize_term() を呼ぶまでは、  
    次回のリサイズイベントが発生しないようにガードされていた。  
@@ -98,7 +98,7 @@
    このガードを外すことができるようにした。  
    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
-10. 画面リサイズ時の画面クリア。  
+10. 画面リサイズ時の画面クリア  
     `( wincon/pdcscrn.c )`  
     シンボル PDC_CLEAR_ON_RESIZE を define することで、  
     resize_term() の実行時に画面をクリアできるようにした。  
