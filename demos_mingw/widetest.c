@@ -3,7 +3,6 @@
  ****************************************/
 
 #include <pdcurses.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 int main(void)
@@ -16,8 +15,8 @@ int main(void)
 
     /* set color */
     if (!has_colors()) {
-        printf("color not supported\n");
-        getchar();
+        mvaddstr(0, 0, "color not supported.");
+        getch();
         exit(0);
     }
     start_color();
@@ -51,6 +50,6 @@ int main(void)
     }
     refresh();
 
-    /* wait for input */
-    getchar();
+    /* wait key input */
+    getch();
 }
