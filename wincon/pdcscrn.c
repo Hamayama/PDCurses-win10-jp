@@ -38,8 +38,8 @@ bool pdc_winterm; /* Windows Terminal (windows 10) */
 
 #ifdef PDC_WIN10_JP
 /* for windows 10 jp */
-int ambiguous_width;
-int emoji_width;
+int pdc_ambiguous_width;
+int pdc_emoji_width;
 #endif
 
 enum { PDC_RESTORE_NONE, PDC_RESTORE_BUFFER };
@@ -425,19 +425,19 @@ int PDC_scr_open(void)
     /* for windows 10 jp */
 
     /* set ambiguous width */
-    str = getenv("PDCURSES_AMBIGUOUS_WIDTH");
+    str = getenv("PDC_AMBIGUOUS_WIDTH");
     if (str) {
-        ambiguous_width = !strcmp(str, "2") ? 2 : 1;
+        pdc_ambiguous_width = !strcmp(str, "2") ? 2 : 1;
     } else {
-        ambiguous_width = pdc_winterm ? 1 : 2;
+        pdc_ambiguous_width = pdc_winterm ? 1 : 2;
     }
 
     /* set emoji width */
-    str = getenv("PDCURSES_EMOJI_WIDTH");
+    str = getenv("PDC_EMOJI_WIDTH ");
     if (str) {
-        emoji_width = !strcmp(str, "2") ? 2 : 1;
+        pdc_emoji_width = !strcmp(str, "2") ? 2 : 1;
     } else {
-        emoji_width = 2;
+        pdc_emoji_width = 2;
     }
 #endif
 

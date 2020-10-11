@@ -16,6 +16,9 @@
   https://github.com/wmcbrine/PDCurses  
   その v3.9 (コミット 618e0aa) (2019-12-22) をベースに改造を行いました。
 
+- 変更の差分は、以下のページで確認できます。  
+  https://github.com/Hamayama/PDCurses-win10-jp/compare/pdcurses-3.9-orig-618e0aa...master
+
 
 ## 変更点
 - オリジナルからの変更点を、以下に示します。
@@ -67,7 +70,7 @@
    また、データ抽出用のツールは、[tools_unicode][2] フォルダに入れておいた)  
    (実装の詳細については、[wincon/pdcdisp_sub.c][1] を参照)  
    
-   また、環境変数 PDCURSES_AMBIGUOUS_WIDTH と PDCURSES_EMOJI_WIDTH により、  
+   また、環境変数 PDC_AMBIGUOUS_WIDTH と PDC_EMOJI_WIDTH により、  
    あいまいな幅の文字 (ambiguous width character) と 絵文字の幅を指定可能にした。  
    (それぞれ 1 か 2 を指定する)  
    理論上は、表示するフォントの幅と、この環境変数の設定が一致していれば、  
@@ -103,6 +106,10 @@
     シンボル PDC_CLEAR_ON_RESIZE を define することで、  
     resize_term() の実行時に画面をクリアできるようにした。  
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
+
+11. リソースファイルの FileDescription を変更  
+    `( common/pdcurses.rc )`  
+    pdcurses.dll のファイルのプロパティで、改造版であることを確認できるようにした。
 
 
 ## インストール方法
@@ -234,9 +241,14 @@
 ## 履歴
 - 2020-10-1  v3.9-jp0001 Windows 10 日本語対応
 - 2020-10-3  v3.9-jp0002 シンボル PDC_CLEAR_ON_RESIZE を追加
+- 2020-10-11 v3.9-jp0003 環境変数名変更  
+  ( PDCURSES_AMBIGUOUS_WIDTH → PDC_AMBIGUOUS_WIDTH  
+  PDCURSES_EMOJI_WIDTH → PDC_EMOJI_WIDTH )  
+  リソースファイル の FileDescription を変更  
+  その他、内部関数の変更等
 
 
-(2020-10-9)
+(2020-10-11)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c

@@ -35,10 +35,10 @@ extern void PDC_blink_text(void);
 
 #ifdef PDC_WIN10_JP
 /* for windows 10 jp */
-extern int ambiguous_width;
-extern int emoji_width;
-extern void _set_console_cursor_position(int y, int x);
-extern void _write_console_w(int y, int x, WCHAR *buffer, int len);
-extern void _write_console_output(int y, int x, CHAR_INFO *ci_buffer, int len);
+extern int pdc_ambiguous_width;
+extern int pdc_emoji_width;
+extern void PDC_set_console_cursor_position(int y, int x);
+extern void PDC_write_console_w(int y, int x, WCHAR *buffer, int len);
+extern void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len);
 #endif
 

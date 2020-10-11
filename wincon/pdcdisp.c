@@ -30,7 +30,7 @@ void PDC_gotoyx(int row, int col)
 
 #ifdef PDC_WIN10_JP
     /* for windows 10 jp */
-    _set_console_cursor_position(row, col);
+    PDC_set_console_cursor_position(row, col);
 #else
     coord.X = col;
     coord.Y = row;
@@ -209,15 +209,15 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
 
         PDC_gotoyx(lineno, x);
         _set_ansi_color(fore, back, attr);
-#ifdef PDC_WIDE
 #ifdef PDC_WIN10_JP
         /* for windows 10 jp */
-        _write_console_w(lineno, x, buffer, len);
+        PDC_write_console_w(lineno, x, buffer, len);
 #else
+#ifdef PDC_WIDE
         WriteConsoleW(pdc_con_out, buffer, len, NULL, NULL);
-#endif
 #else
         WriteConsoleA(pdc_con_out, buffer, len, NULL, NULL);
+#endif
 #endif
     }
     else
@@ -262,7 +262,7 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
 
 #ifdef PDC_WIN10_JP
         /* for windows 10 jp */
-        _write_console_output(lineno, x, buffer, len);
+        PDC_write_console_output_w(lineno, x, buffer, len);
 #else
         bufPos.X = bufPos.Y = 0;
         bufSize.X = len;

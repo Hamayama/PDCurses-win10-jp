@@ -19,7 +19,12 @@ BEGIN
     BLOCK "04090000"
     BEGIN
       VALUE "CompanyName", "PDCurses.org"
-      VALUE "FileDescription", "PDCurses Library"
+#ifdef PDC_WIN10_JP
+      /* for windows 10 jp */
+      VALUE "FileDescription", "PDCurses Library for Windows 10 JP"
+#else
+      VALUE "FileDescription", "PDCurses Library for Windows 8.1 or earlier JP"
+#endif
       VALUE "FileVersion", PDC_VERDOT ".0.0"
       VALUE "InternalName", "PDCurses"
       VALUE "LegalCopyright", "Public Domain"

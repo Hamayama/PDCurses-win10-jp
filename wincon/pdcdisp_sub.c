@@ -21,9 +21,9 @@ static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len);
 static void goto_yx(int y, int x);
 
 /* api functions */
-void _set_console_cursor_position(int y, int x);
-void _write_console_w(int y, int x, WCHAR *buffer, int len);
-void _write_console_output(int y, int x, CHAR_INFO *ci_buffer, int len);
+void PDC_set_console_cursor_position(int y, int x);
+void PDC_write_console_w(int y, int x, WCHAR *buffer, int len);
+void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len);
 
 /* search a character from interval table */
 static int search_table(int ch, const struct interval *table, int size)
@@ -244,7 +244,7 @@ static int adjust_cur_x(int y, int x)
     chtype *srcp;
     int i;
     int new_x;
-    chtype ch;
+    int ch;
 
     /* check arguments */
     if (x < 0 || x >= disp_width || y < 0 || y >= disp_height) {
@@ -268,8 +268,8 @@ static int adjust_cur_x(int y, int x)
         /* ambiguous width character */
         /* emoji character */
         } else if (is_wide(ch) ||
-                   (is_ambwidth(ch) && ambiguous_width > 1) ||
-                   (is_emoji(ch) && emoji_width > 1)) {
+                   (is_ambwidth(ch) && pdc_ambiguous_width > 1) ||
+                   (is_emoji(ch) && pdc_emoji_width > 1)) {
             new_x++;
         }
     }
@@ -285,7 +285,7 @@ static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len)
     int i, j;
     int new_x;
     int new_len;
-    chtype ch;
+    int ch;
 
     /* check arguments */
     if (x < 0 || x >= disp_width || y < 0 || y >= disp_height) {
@@ -327,8 +327,8 @@ static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len)
         /* ambiguous width character */
         /* emoji character */
         } else if (is_wide(ch) ||
-                   (is_ambwidth(ch) && ambiguous_width > 1) ||
-                   (is_emoji(ch) && emoji_width > 1)) {
+                   (is_ambwidth(ch) && pdc_ambiguous_width > 1) ||
+                   (is_emoji(ch) && pdc_emoji_width > 1)) {
             new_x++;
             /* check half size overflow of wide character */
             if (new_x > disp_width) {
@@ -361,20 +361,20 @@ static void goto_yx(int y, int x)
 }
 
 /* set cursor position */
-void _set_console_cursor_position(int y, int x)
+void PDC_set_console_cursor_position(int y, int x)
 {
     goto_yx(y, adjust_cur_x(y, x));
 }
 
 /* write buffer to console */
-void _write_console_w(int y, int x, WCHAR *buffer, int len)
+void PDC_write_console_w(int y, int x, WCHAR *buffer, int len)
 {
     int i;
     int len1;
     int x1, x2;
-    WCHAR space[10] = {0x0020};
+    WCHAR space[4] = {0x0020};
     WCHAR *buffer1;
-    chtype ch;
+    int ch;
     DWORD written;
 
     /* adjust cursor-x position */
@@ -404,8 +404,8 @@ void _write_console_w(int y, int x, WCHAR *buffer, int len)
             x2++;
         /* ambiguous width character */
         /* emoji character */
-        } else if ((is_ambwidth(ch) && ambiguous_width > 1) ||
-                   (is_emoji(ch) && emoji_width > 1)) {
+        } else if ((is_ambwidth(ch) && pdc_ambiguous_width > 1) ||
+                   (is_emoji(ch) && pdc_emoji_width > 1)) {
             x2++;
             /* write 2 cells for windows console problem */
             goto_yx(y, x2 - 2);
@@ -424,7 +424,7 @@ void _write_console_w(int y, int x, WCHAR *buffer, int len)
 }
 
 /* write buffer to console */
-void _write_console_output(int y, int x, CHAR_INFO *ci_buffer, int len)
+void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len)
 {
     int i;
     int len1;
@@ -433,10 +433,15 @@ void _write_console_output(int y, int x, CHAR_INFO *ci_buffer, int len)
     WCHAR *buffer1;
     WORD  attr;
     DWORD attr_len;
-    chtype ch;
+    int ch;
     COORD coord;
-    WCHAR space[10] = {0x0020};
+    WCHAR space[4] = {0x0020};
     DWORD written;
+
+    /* check buffer length */
+    if (len > 512) {
+        return;
+    }
 
     /* adjust cursor-x position */
     x1 = adjust_cur_x(y, x);
@@ -475,8 +480,8 @@ void _write_console_output(int y, int x, CHAR_INFO *ci_buffer, int len)
             x2++;
         /* ambiguous width character */
         /* emoji character */
-        } else if ((is_ambwidth(ch) && ambiguous_width > 1) ||
-                   (is_emoji(ch) && emoji_width > 1)) {
+        } else if ((is_ambwidth(ch) && pdc_ambiguous_width > 1) ||
+                   (is_emoji(ch) && pdc_emoji_width > 1)) {
             x2++;
             /* write 2 cells for windows console problem */
             coord.X = x2 - 2;

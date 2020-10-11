@@ -1,6 +1,6 @@
 # GNU Makefile for PDCurses - Windows console
 #
-# Usage: make [-f path\Makefile] [DEBUG=Y] [DLL=Y] [WIDE=Y] [UTF8=Y]
+# Usage: make [-f path\Makefile] [DEBUG=Y] [DLL=Y] [WIDE=Y] [UTF8=Y] [WIN10_JP=Y]
 #        [INFOEX=N] [tgt]
 #
 # where tgt can be any of:
@@ -36,6 +36,7 @@ AR		= ar
 STRIP		= strip
 LINK		= gcc
 WINDRES		= windres
+WINDRES_FLAGS	=
 
 ifeq ($(DEBUG),Y)
 	CFLAGS  = -g -Wall -DPDCDEBUG
@@ -53,6 +54,7 @@ ifeq ($(WIN10_JP),Y)
                   -DPDC_RIGHT_MARGIN=1 -DPDC_RESIZE_NO_CHECK \
                   -DPDC_CLEAR_ON_RESIZE
 	PDCOBJS += pdcdisp_sub.o
+	WINDRES_FLAGS += -DPDC_WIN10_JP
 endif
 
 ifeq ($(WIDE),Y)
@@ -102,7 +104,7 @@ $(LIBCURSES) : $(LIBOBJS) $(PDCOBJS) $(RESOURCE)
 	$(LIBEXE) $(LIBFLAGS) $@ $^
 
 pdcurses.o: $(common)/pdcurses.rc
-	$(WINDRES) -i $(common)/pdcurses.rc pdcurses.o
+	$(WINDRES) $(WINDRES_FLAGS) -i $(common)/pdcurses.rc pdcurses.o
 
 $(LIBOBJS) $(PDCOBJS) : $(PDCURSES_HEADERS)
 $(PDCOBJS) : $(PDCURSES_WIN_H)
