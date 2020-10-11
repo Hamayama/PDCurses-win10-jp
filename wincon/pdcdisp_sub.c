@@ -36,12 +36,12 @@ static int search_table(int ch, const struct interval *table, int size)
     if (ch < table[0].first || ch > table[max].last) {
         return 0;
     }
-    while (max >= min) {
+    while (min <= max) {
         mid = (min + max) / 2;
-        if (ch > table[mid].last) {
-            min = mid + 1;
-        } else if (ch < table[mid].first) {
+        if (ch < table[mid].first) {
             max = mid - 1;
+        } else if (ch > table[mid].last) {
+            min = mid + 1;
         } else {
             return 1;
         }

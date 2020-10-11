@@ -39,10 +39,10 @@ WINDRES		= windres
 WINDRES_FLAGS	=
 
 ifeq ($(DEBUG),Y)
-	CFLAGS  = -g -Wall -DPDCDEBUG
+	CFLAGS  = -g -Wall -Wextra -Wno-unused-parameter -Wno-cast-function-type -DPDCDEBUG
 	LDFLAGS = -g
 else
-	CFLAGS  = -O2 -Wall
+	CFLAGS  = -O2 -Wall -Wextra -Wno-unused-parameter -Wno-cast-function-type
 	LDFLAGS =
 endif
 

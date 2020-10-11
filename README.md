@@ -111,6 +111,12 @@
     `( common/pdcurses.rc )`  
     pdcurses.dll のファイルのプロパティで、改造版であることを確認できるようにした。
 
+12. 初期化の追加  
+    `( wincon/pdckbd.c )`  
+    配列変数 ext_kptab[] の初期化に不足分があったため、追加した。  
+    (static 変数の初期値は 0 なので、問題はないと思われるが、  
+    コンパイル時に警告が出ていたため、追加した)
+
 
 ## インストール方法
 - MSYS2/MinGW-w64 (64bit) 環境でのインストール手順を、以下に示します。  
@@ -246,9 +252,10 @@
   PDCURSES_EMOJI_WIDTH → PDC_EMOJI_WIDTH )  
   リソースファイル の FileDescription を変更  
   その他、内部関数の変更等
+- 2020-10-12 v3.9-jp0004 コンパイル時の警告の解消。内部関数の処理一部変更
 
 
-(2020-10-11)
+(2020-10-12)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
