@@ -4,8 +4,8 @@ SRCDIR = wincon
 DSTDIR = 0000_dist
 
 all:
-	cd $(SRCDIR); $(MAKE) -f Makefile WIN10_JP=Y DLL=Y DEBUG=Y
-	cd $(SRCDIR); $(MAKE) -f Makefile WIN10_JP=Y DLL=Y DEBUG=Y demos
+	cd $(SRCDIR); $(MAKE) -f Makefile WIN10_JP=Y DLL=Y
+	cd $(SRCDIR); $(MAKE) -f Makefile WIN10_JP=Y DLL=Y demos
 	mkdir -p $(DSTDIR)/include/pdcurses
 	mkdir -p $(DSTDIR)/bin
 	mkdir -p $(DSTDIR)/lib
