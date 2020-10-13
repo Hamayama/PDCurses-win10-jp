@@ -372,7 +372,7 @@ void PDC_write_console_w(int y, int x, WCHAR *buffer, int len)
     int i;
     int len1;
     int x1, x2;
-    WCHAR space[4] = {0x0020};
+    WCHAR space[4] = {0x0020, 0x0020, 0, 0};
     WCHAR *buffer1;
     int ch;
     DWORD written;
@@ -407,7 +407,7 @@ void PDC_write_console_w(int y, int x, WCHAR *buffer, int len)
         } else if ((is_ambwidth(ch) && pdc_ambiguous_width > 1) ||
                    (is_emoji(ch) && pdc_emoji_width > 1)) {
             x2++;
-            /* write 2 cells for windows console problem */
+            /* clear 2 cells for half size font */
             goto_yx(y, x2 - 2);
             WriteConsoleW(pdc_con_out, space, 2, &written, NULL);
             goto_yx(y, x1);
@@ -435,7 +435,7 @@ void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len)
     DWORD attr_len;
     int ch;
     COORD coord;
-    WCHAR space[4] = {0x0020};
+    WCHAR space[4] = {0x0020, 0x0020, 0, 0};
     DWORD written;
 
     /* check buffer length */
@@ -483,7 +483,7 @@ void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len)
         } else if ((is_ambwidth(ch) && pdc_ambiguous_width > 1) ||
                    (is_emoji(ch) && pdc_emoji_width > 1)) {
             x2++;
-            /* write 2 cells for windows console problem */
+            /* clear 2 cells for half size font */
             coord.X = x2 - 2;
             coord.Y = y;
             WriteConsoleOutputCharacterW(pdc_con_out, space, 2, coord, &written);
