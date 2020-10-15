@@ -565,6 +565,15 @@ int PDC_resize_screen(int nlines, int ncols)
     if (nlines < 2 || ncols < 2)
         return ERR;
 
+#ifdef PDC_CURSOR_HOME_ON_RESIZE
+    /* workaround for windows console problem on resize
+       ( https://github.com/microsoft/terminal/issues/1976 ) */
+    COORD coord;
+    coord.X = 0;
+    coord.Y = 0;
+    SetConsoleCursorPosition(pdc_con_out, coord);
+#endif
+
     max = GetLargestConsoleWindowSize(pdc_con_out);
 
     rect.Left = rect.Top = 0;
@@ -596,12 +605,12 @@ int PDC_resize_screen(int nlines, int ncols)
     WORD  attr = 0x0007;
     WCHAR ch = 0x0020;
     DWORD len = size.X * size.Y;
-    COORD coord;
+    COORD coord2;
     DWORD written;
-    coord.X = 0;
-    coord.Y = 0;
-    FillConsoleOutputAttribute(pdc_con_out, attr, len, coord, &written);
-    FillConsoleOutputCharacterW(pdc_con_out, ch, len, coord, &written);
+    coord2.X = 0;
+    coord2.Y = 0;
+    FillConsoleOutputAttribute(pdc_con_out, attr, len, coord2, &written);
+    FillConsoleOutputCharacterW(pdc_con_out, ch, len, coord2, &written);
 #endif
 
     PDC_flushinp();
@@ -619,6 +628,15 @@ void PDC_reset_prog_mode(void)
     {
         COORD bufsize;
         SMALL_RECT rect;
+
+#ifdef PDC_CURSOR_HOME_ON_RESIZE
+        /* workaround for windows console problem on resize
+           ( https://github.com/microsoft/terminal/issues/1976 ) */
+        COORD coord;
+        coord.X = 0;
+        coord.Y = 0;
+        SetConsoleCursorPosition(pdc_con_out, coord);
+#endif
 
         bufsize.X = orig_scr.srWindow.Right - orig_scr.srWindow.Left + 1;
         bufsize.Y = orig_scr.srWindow.Bottom - orig_scr.srWindow.Top + 1;
@@ -644,6 +662,16 @@ void PDC_reset_shell_mode(void)
         SetConsoleActiveScreenBuffer(std_con_out);
     else if (is_nt)
     {
+
+#ifdef PDC_CURSOR_HOME_ON_RESIZE
+        /* workaround for windows console problem on resize
+           ( https://github.com/microsoft/terminal/issues/1976 ) */
+        COORD coord;
+        coord.X = 0;
+        coord.Y = 0;
+        SetConsoleCursorPosition(pdc_con_out, coord);
+#endif
+
         SetConsoleScreenBufferSize(pdc_con_out, orig_scr.dwSize);
         SetConsoleWindowInfo(pdc_con_out, TRUE, &orig_scr.srWindow);
         SetConsoleScreenBufferSize(pdc_con_out, orig_scr.dwSize);
