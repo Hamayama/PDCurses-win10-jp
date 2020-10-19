@@ -115,7 +115,9 @@
     `( wincon/pdckbd.c )`  
     配列変数 ext_kptab[] の初期化に不足分があったため、追加した。  
     (static 変数の初期値は 0 なので、問題はないと思われるが、  
-    コンパイル時に警告が出ていたため、追加した)
+    コンパイル時に警告が出ていたため、追加した)  
+    また、配列変数 kptab[] について、要素数 256 まで初期化しておくようにした。  
+    (MinGW-w64 のヘッダーファイルを見ると、VK_OEM_CLEAR (0xFE) までは定義されていたため)
 
 13. 画面リサイズ時に、カーソルをホームポジション (0,0) に移動  
     `( wincon/pdcscrn.c )`  
@@ -123,6 +125,14 @@
     resize_term() の実行時に、カーソルをホームポジション (0,0) に移動するようにした。  
     これによって、画面リサイズ時に Windows Console が異常終了する現象を、回避できるもよう。  
     (参考URL：https://github.com/microsoft/terminal/issues/1976 )  
+    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
+
+14. いくつかのキー入力を受け付けるように変更  
+    `( wincon/pdckbd.c )`  
+    シンボル PDC_ADDITIONAL_KEYS を define することで、  
+    「;」「:」「,」「-」「.」「/」「@」の各キーについて、  
+    Ctrl キーもしくは Alt キーとの同時押しを受け付けられるようにした。  
+    (今までは、キー入力イベントが発生しなかった)  
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
 
@@ -270,9 +280,10 @@
 - 2020-10-13 v3.9-jp0005 内部関数の処理修正  
   (設定が全角でフォントが半角のときの対策用処理で、配列の初期化ミス)
 - 2020-10-15 v3.9-jp0006 シンボル PDC_CURSOR_HOME_ON_RESIZE を追加
+- 2020-10-19 v3.9-jp0007 シンボル PDC_ADDITIONAL_KEYS を追加
 
 
-(2020-10-15)
+(2020-10-19)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
