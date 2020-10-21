@@ -36,10 +36,10 @@ bool pdc_conemu, pdc_ansi;
 
 #ifdef PDC_WIN10_JP
 /* for windows 10 jp */
-bool pdc_mintty;  /* mintty (winpty is needed) */
-bool pdc_winterm; /* Windows Terminal (windows 10) */
-int pdc_ambiguous_width;
-int pdc_emoji_width;
+bool pdc_mintty;         /* mintty (winpty is needed) detection */
+bool pdc_winterm;        /* Windows Terminal (windows 10) detection */
+int pdc_ambiguous_width; /* width of ambiguous width characters (=1 or 2) */
+int pdc_emoji_width;     /* width of emoji characters (=1 or 2) */
 #endif
 
 enum { PDC_RESTORE_NONE, PDC_RESTORE_BUFFER };
@@ -416,15 +416,15 @@ int PDC_scr_open(void)
 #ifdef PDC_WIN10_JP
     /* for windows 10 jp */
 
-    /* mintty (winpty is needed) */
+    /* mintty (winpty is needed) detection */
     str = getenv("MSYSCON");
     pdc_mintty = str ? !strcmp(str, "mintty.exe") : FALSE;
 
-    /* Windows Terminal (windows 10) */
+    /* Windows Terminal (windows 10) detection */
     str = getenv("WT_SESSION");
     pdc_winterm = !!str;
 
-    /* set ambiguous width */
+    /* set width of ambiguous width characters */
     str = getenv("PDC_AMBIGUOUS_WIDTH");
     if (str) {
         pdc_ambiguous_width = !strcmp(str, "2") ? 2 : 1;
@@ -432,7 +432,7 @@ int PDC_scr_open(void)
         pdc_ambiguous_width = pdc_winterm ? 1 : 2;
     }
 
-    /* set emoji width */
+    /* set width of emoji characters */
     str = getenv("PDC_EMOJI_WIDTH ");
     if (str) {
         pdc_emoji_width = !strcmp(str, "2") ? 2 : 1;
@@ -558,8 +558,14 @@ int PDC_resize_screen(int nlines, int ncols)
     {
         nlines = PDC_get_rows();
 
-        /* use right margin for windows console problem */
-        ncols = PDC_get_columns() + PDC_RIGHT_MARGIN;
+#ifdef PDC_RIGHT_MARGIN
+        /* don't consider right margin */
+        CONSOLE_SCREEN_BUFFER_INFO scr;
+        GetConsoleScreenBufferInfo(pdc_con_out, &scr);
+        ncols = scr.srWindow.Right - scr.srWindow.Left + 1;
+#else
+        ncols = PDC_get_columns();
+#endif
     }
 
     if (nlines < 2 || ncols < 2)

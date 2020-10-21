@@ -24,11 +24,14 @@
 - オリジナルからの変更点を、以下に示します。
 
 1. トップディレクトリに Makefile と Makefile_win8 を追加  
-   MSYS2/MinGW-w64 環境で wincon をビルドするための Makefile を追加した。  
+   MSYS2/MinGW-w64 環境で、PDCurses の Windows Console 用ポート (wincon) を、  
+   ビルドするための Makefile を追加した。  
    Makefile が Windows 10 用で、Makefile_win8 が Windows 8.1 以前用になる。  
    (基本的に、Makefile_win8 を使うと、非改造のビルドになる)  
-   make を実行すると、0000_dist というフォルダが生成されて、その中に成果物が格納される。  
-   (成果物のヘッダーファイルについては、`include/pdcurses.h` を生成して、  
+   
+   トップディレクトリ上で、make を実行すると、  
+   0000_dist というフォルダが生成されて、その中に成果物が格納される。  
+   (成果物のヘッダーファイルについては、`include/pdcurses.h` を自動生成して、  
    そこから、本来のヘッダーファイルを参照するようにした。  
    (これは、MSYS2/MinGW-w64 の PDCurses パッケージの方式に合わせたものである))
 
@@ -98,7 +101,7 @@
    `( wincon/pdckbd.c )`  
    もともと、リサイズイベントの発生後は、resize_term() を呼ぶまでは、  
    次回のリサイズイベントが発生しないようにガードされていた。  
-   これを、シンボル PDC_RESIZE_NO_CHECK を define することで、  
+   これを、シンボル PDC_NO_CHECK_ON_RESIZE を define することで、  
    このガードを外すことができるようにした。  
    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
@@ -283,6 +286,8 @@
 - 2020-10-15 v3.9-jp0006 シンボル PDC_CURSOR_HOME_ON_RESIZE を追加
 - 2020-10-19 v3.9-jp0007 シンボル PDC_ADDITIONAL_KEYS を追加
 - 2020-10-21 v3.9-jp0008 ifdef の範囲見直し等
+- 2020-10-21 v3.9-jp0009 内部処理見直し  
+  シンボル名変更 ( PDC_RESIZE_NO_CHECK → PDC_NO_CHECK_ON_RESIZE )
 
 
 (2020-10-21)

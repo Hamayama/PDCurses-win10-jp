@@ -631,7 +631,7 @@ int PDC_get_key(void)
         case WINDOW_BUFFER_SIZE_EVENT:
             if (REV.dwSize.Y != LINES || REV.dwSize.X != COLS)
             {
-#ifdef PDC_RESIZE_NO_CHECK
+#ifdef PDC_NO_CHECK_ON_RESIZE
                 SP->resized = TRUE;
                 SP->key_code = TRUE;
                 return KEY_RESIZE;

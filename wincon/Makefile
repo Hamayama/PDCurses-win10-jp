@@ -51,7 +51,7 @@ CFLAGS += -I$(PDCURSES_SRCDIR)
 # for windows 10 jp
 ifeq ($(WIN10_JP),Y)
 	CFLAGS += -DPDC_WIN10_JP -DPDC_WIDE -DPDC_FORCE_UTF8 \
-                  -DPDC_RIGHT_MARGIN=1 -DPDC_RESIZE_NO_CHECK \
+                  -DPDC_RIGHT_MARGIN=1  -DPDC_NO_CHECK_ON_RESIZE \
                   -DPDC_CLEAR_ON_RESIZE -DPDC_CURSOR_HOME_ON_RESIZE \
                   -DPDC_ADDITIONAL_KEYS
 	PDCOBJS += pdcdisp_sub.o

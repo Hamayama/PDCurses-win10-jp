@@ -38,6 +38,11 @@ int PDC_get_columns(void)
 
     GetConsoleScreenBufferInfo(pdc_con_out, &scr);
 
+#ifdef PDC_RIGHT_MARGIN
     /* use right margin for windows console problem */
-    return scr.srWindow.Right - scr.srWindow.Left + 1 - PDC_RIGHT_MARGIN;
+    int cols = scr.srWindow.Right - scr.srWindow.Left + 1 - PDC_RIGHT_MARGIN;
+    return (cols < 0 ? 0 : cols);
+#else
+    return scr.srWindow.Right - scr.srWindow.Left + 1;
+#endif
 }
