@@ -1,4 +1,4 @@
-# Makefile for MSYS2/MinGW-w64 on Windows 8.1 or earlier
+# Makefile of PDCurses wincon port for MSYS2/MinGW-w64 on Windows 8.1 or earlier JP
 
 SRCDIR = wincon
 DSTDIR = 0000_dist

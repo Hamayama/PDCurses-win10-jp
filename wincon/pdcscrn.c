@@ -33,11 +33,11 @@ static short ansitocurs[16] =
 short pdc_curstoreal[16], pdc_curstoansi[16];
 short pdc_oldf, pdc_oldb, pdc_oldu;
 bool pdc_conemu, pdc_ansi;
-bool pdc_mintty;  /* mintty (winpty is needed) */
-bool pdc_winterm; /* Windows Terminal (windows 10) */
 
 #ifdef PDC_WIN10_JP
 /* for windows 10 jp */
+bool pdc_mintty;  /* mintty (winpty is needed) */
+bool pdc_winterm; /* Windows Terminal (windows 10) */
 int pdc_ambiguous_width;
 int pdc_emoji_width;
 #endif
@@ -413,6 +413,9 @@ int PDC_scr_open(void)
     pdc_conemu = !!str;
     pdc_ansi = pdc_conemu ? !strcmp(str, "ON") : FALSE;
 
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+
     /* mintty (winpty is needed) */
     str = getenv("MSYSCON");
     pdc_mintty = str ? !strcmp(str, "mintty.exe") : FALSE;
@@ -420,9 +423,6 @@ int PDC_scr_open(void)
     /* Windows Terminal (windows 10) */
     str = getenv("WT_SESSION");
     pdc_winterm = !!str;
-
-#ifdef PDC_WIN10_JP
-    /* for windows 10 jp */
 
     /* set ambiguous width */
     str = getenv("PDC_AMBIGUOUS_WIDTH");

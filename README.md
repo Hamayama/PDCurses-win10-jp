@@ -68,6 +68,7 @@
    https://unicode.org/Public/UNIDATA/EastAsianWidth.txt  
    https://unicode.org/Public/UNIDATA/emoji/emoji-data.txt  
    また、データ抽出用のツールは、[tools_unicode][2] フォルダに入れておいた)  
+   (ツールの実行には Gauche が必要))  
    (実装の詳細については、[wincon/pdcdisp_sub.c][1] を参照)  
    
    また、環境変数 PDC_AMBIGUOUS_WIDTH と PDC_EMOJI_WIDTH により、  
@@ -281,9 +282,10 @@
   (設定が全角でフォントが半角のときの対策用処理で、配列の初期化ミス)
 - 2020-10-15 v3.9-jp0006 シンボル PDC_CURSOR_HOME_ON_RESIZE を追加
 - 2020-10-19 v3.9-jp0007 シンボル PDC_ADDITIONAL_KEYS を追加
+- 2020-10-21 v3.9-jp0008 ifdef の範囲見直し等
 
 
-(2020-10-19)
+(2020-10-21)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
