@@ -1,24 +1,24 @@
 # Makefile of PDCurses wincon port for MSYS2/MinGW-w64 on Windows 10 JP
 
-SRCDIR = wincon
-DSTDIR = 0000_dist
+SRC_DIR  = wincon
+DIST_DIR = 0000_dist
 
 all:
-	cd $(SRCDIR); $(MAKE) -f Makefile WIN10_JP=Y DLL=Y
-	cd $(SRCDIR); $(MAKE) -f Makefile WIN10_JP=Y DLL=Y demos
-	mkdir -p $(DSTDIR)/include/pdcurses
-	mkdir -p $(DSTDIR)/bin
-	mkdir -p $(DSTDIR)/lib
-	echo '#include "pdcurses/curses.h"' > $(DSTDIR)/include/pdcurses.h
-	cp curses.h   $(DSTDIR)/include/pdcurses
-	cp curspriv.h $(DSTDIR)/include/pdcurses
-	cp panel.h    $(DSTDIR)/include/pdcurses
-	cp $(SRCDIR)/pdcurses.dll $(DSTDIR)/bin
-	cp $(SRCDIR)/pdcurses.a   $(DSTDIR)/lib/libpdcurses.dll.a
+	cd $(SRC_DIR); $(MAKE) -f Makefile WIN10_JP=Y DLL=Y
+	cd $(SRC_DIR); $(MAKE) -f Makefile WIN10_JP=Y DLL=Y demos
+	mkdir -p $(DIST_DIR)/include/pdcurses
+	mkdir -p $(DIST_DIR)/bin
+	mkdir -p $(DIST_DIR)/lib
+	echo '#include "pdcurses/curses.h"' > $(DIST_DIR)/include/pdcurses.h
+	cp curses.h   $(DIST_DIR)/include/pdcurses
+	cp curspriv.h $(DIST_DIR)/include/pdcurses
+	cp panel.h    $(DIST_DIR)/include/pdcurses
+	cp $(SRC_DIR)/pdcurses.dll $(DIST_DIR)/bin
+	cp $(SRC_DIR)/pdcurses.a   $(DIST_DIR)/lib/libpdcurses.dll.a
 
 clean:
-	cd $(SRCDIR); $(MAKE) clean
-	rm -rf $(DSTDIR)/include
-	rm -rf $(DSTDIR)/bin
-	rm -rf $(DSTDIR)/lib
+	cd $(SRC_DIR); $(MAKE) clean
+	rm -rf $(DIST_DIR)/include
+	rm -rf $(DIST_DIR)/bin
+	rm -rf $(DIST_DIR)/lib
 
