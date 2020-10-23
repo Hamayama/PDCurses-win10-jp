@@ -245,13 +245,18 @@
    → 上記 8. の対策により、異常終了はしなくなったもよう。しかし、表示は乱れる。  
    (内部情報が、50桁未満にはならないのかも)
 
-10. コマンドプロンプト (cmd.exe) で、絵文字を表示できない
+10. mintty (winpty が必要) で、画面をリサイズすると、異常終了することがある (Windows 10)  
+    → これは、winpty 側で、上記 8. と同様の対策が必要であった。  
+    https://github.com/Hamayama/winpty-fixes  
+    の方で修正した。
 
-11. ConEmu で、絵文字を表示できない (Windows 10)
+11. コマンドプロンプト (cmd.exe) で、絵文字を表示できない
 
-12. mintty (winpty が必要) で、絵文字を表示できない (Windows 10)
+12. ConEmu で、絵文字を表示できない (Windows 10)
 
-13. Windows Terminal で、マウスイベントが取れない (Windows 10)  
+13. mintty (winpty が必要) で、絵文字を表示できない (Windows 10)
+
+14. Windows Terminal で、マウスイベントが取れない (Windows 10)  
     (Windows Console API のマウスイベント関連が未実装とのこと)
 
 
@@ -290,7 +295,7 @@
   シンボル名変更 ( PDC_RESIZE_NO_CHECK → PDC_NO_CHECK_ON_RESIZE )
 
 
-(2020-10-22)
+(2020-10-23)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
