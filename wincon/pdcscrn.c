@@ -36,10 +36,14 @@ bool pdc_conemu, pdc_ansi;
 
 #ifdef PDC_WIN10_JP
 /* for windows 10 jp */
-bool pdc_mintty;         /* mintty (winpty is needed) detection */
-bool pdc_winterm;        /* Windows Terminal (windows 10) detection */
-int pdc_ambiguous_width; /* width of ambiguous width characters (=1 or 2) */
-int pdc_emoji_width;     /* width of emoji characters (=1 or 2) */
+DWORD pdc_con_in_mode;        /* console input mode */
+DWORD pdc_con_out_mode;       /* console output mode */
+DWORD pdc_con_in_mode_orig;   /* preserved console input mode */
+DWORD pdc_con_out_mode_orig;  /* preserved console output mode */
+bool pdc_mintty;              /* mintty (winpty is needed) detection */
+bool pdc_winterm;             /* Windows Terminal (windows 10) detection */
+int pdc_ambiguous_width;      /* width of ambiguous width characters (=1 or 2) */
+int pdc_emoji_width;          /* width of emoji characters (=1 or 2) */
 #endif
 
 enum { PDC_RESTORE_NONE, PDC_RESTORE_BUFFER };
@@ -385,7 +389,11 @@ int PDC_scr_open(void)
     const char *str;
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     HMODULE h_kernel;
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+#else
     BOOL result;
+#endif
     int i;
 
     PDC_LOG(("PDC_scr_open() - called\n"));
@@ -451,6 +459,23 @@ int PDC_scr_open(void)
 
     pdc_quick_edit = old_console_mode & 0x0040;
 
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+
+    /* preserve console mode */
+    GetConsoleMode(pdc_con_in,  &pdc_con_in_mode_orig);
+    GetConsoleMode(pdc_con_out, &pdc_con_out_mode_orig);
+
+    /* set console mode */
+    pdc_con_in_mode  = 0x0088 | pdc_quick_edit;
+    pdc_con_out_mode = 0x0010; /* LVB */
+    if (SetConsoleMode(pdc_con_out, 0x0004)) { /* VT */
+        pdc_con_out_mode |= 0x0004;
+    }
+    SetConsoleMode(pdc_con_in,  pdc_con_in_mode);
+    SetConsoleMode(pdc_con_out, pdc_con_out_mode);
+#endif
+
     SP->mouse_wait = PDC_CLICK_PERIOD;
     SP->audible = TRUE;
 
@@ -489,10 +514,15 @@ int PDC_scr_open(void)
 
     SP->_preserve = (getenv("PDC_PRESERVE_SCREEN") != NULL);
 
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+    SP->termattrs |= A_UNDERLINE | A_LEFT | A_RIGHT;
+#else
     /* ENABLE_LVB_GRID_WORLDWIDE */
     result = SetConsoleMode(pdc_con_out, 0x0010);
     if (result)
         SP->termattrs |= A_UNDERLINE | A_LEFT | A_RIGHT;
+#endif
 
     PDC_reset_prog_mode();
 
@@ -685,7 +715,15 @@ void PDC_reset_shell_mode(void)
         SetConsoleActiveScreenBuffer(pdc_con_out);
     }
 
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+
+    /* restore console mode */
+    SetConsoleMode(pdc_con_in,  pdc_con_in_mode_orig);
+    SetConsoleMode(pdc_con_out, pdc_con_out_mode_orig);
+#else
     SetConsoleMode(pdc_con_in, old_console_mode | 0x0080);
+#endif
 }
 
 void PDC_restore_screen_mode(int i)

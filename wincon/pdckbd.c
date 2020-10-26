@@ -672,8 +672,22 @@ int PDC_mouse_set(void)
        If turning off the mouse: Set QuickEdit Mode to the status it
        had on startup, and clear all other flags */
 
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+
+    /* set console mode */
+    if (SP->_trap_mbe) {
+        pdc_con_in_mode |=  0x0010; /* mouse input on */
+        pdc_con_in_mode &= ~0x0040; /* quick edit mode off */
+    } else {
+        pdc_con_in_mode &= ~0x0010; /* mouse input off */
+        pdc_con_in_mode |= pdc_quick_edit; /* restore quick edit mode */
+    }
+    SetConsoleMode(pdc_con_in, pdc_con_in_mode);
+#else
     SetConsoleMode(pdc_con_in, SP->_trap_mbe ?
                    (ENABLE_MOUSE_INPUT|0x0088) : (pdc_quick_edit|0x0088));
+#endif
 
     memset(&old_mouse_status, 0, sizeof(old_mouse_status));
 

@@ -135,6 +135,12 @@ void _set_ansi_color(short f, short b, attr_t attr)
     if (strlen(esc) > 2)
     {
         sprintf(p, "m");
+
+#ifdef PDC_WIN10_JP
+        /* for windows 10 jp */
+        DWORD written;
+        WriteConsoleA(pdc_con_out, esc, strlen(esc), &written, NULL);
+#else
         if (!pdc_conemu)
             SetConsoleMode(pdc_con_out, 0x0015);
 
@@ -142,6 +148,7 @@ void _set_ansi_color(short f, short b, attr_t attr)
 
         if (!pdc_conemu)
             SetConsoleMode(pdc_con_out, 0x0010);
+#endif
     }
 }
 

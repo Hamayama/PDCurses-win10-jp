@@ -139,6 +139,9 @@
     (今までは、キー入力イベントが発生しなかった)  
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
+15. SetConsoleMode() の処理見直し  
+    現在の状態を、変数で管理するようにした。
+
 
 ## インストール方法
 - MSYS2/MinGW-w64 (64bit) 環境でのインストール手順を、以下に示します。  
@@ -293,9 +296,10 @@
 - 2020-10-21 v3.9-jp0008 ifdef の範囲見直し等
 - 2020-10-21 v3.9-jp0009 内部処理見直し  
   シンボル名変更 ( PDC_RESIZE_NO_CHECK → PDC_NO_CHECK_ON_RESIZE )
+- 2020-10-26 v3.9-jp0010 SetConsoleMode() の処理見直し
 
 
-(2020-10-23)
+(2020-10-26)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c

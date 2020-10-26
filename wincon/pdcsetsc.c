@@ -96,12 +96,20 @@ int PDC_set_blink(bool blinkon)
         COLORS = 16;
         if (PDC_can_change_color()) /* is_nt */
         {
+#ifdef PDC_WIN10_JP
+            /* for windows 10 jp */
+            if (pdc_conemu || (pdc_con_out_mode & 0x0004)) { /* VT */
+                COLORS = PDC_MAXCOL;
+            }
+#else
             if (pdc_conemu || SetConsoleMode(pdc_con_out, 0x0004)) /* VT */
                 COLORS = PDC_MAXCOL;
 
             if (!pdc_conemu)
                 SetConsoleMode(pdc_con_out, 0x0010); /* LVB */
+#endif
         }
+
 #ifdef PDC_WIN10_JP
         /* for windows 10 jp */
 

@@ -28,10 +28,14 @@ extern void PDC_blink_text(void);
 
 #ifdef PDC_WIN10_JP
 /* for windows 10 jp */
-extern bool pdc_mintty;         /* mintty (winpty is needed) detection */
-extern bool pdc_winterm;        /* Windows Terminal (windows 10) detection */
-extern int pdc_ambiguous_width; /* width of ambiguous width characters (=1 or 2) */
-extern int pdc_emoji_width;     /* width of emoji characters (=1 or 2) */
+extern DWORD pdc_con_in_mode;       /* console input mode */
+extern DWORD pdc_con_out_mode;      /* console output mode */
+extern DWORD pdc_con_in_mode_orig;  /* preserved console input mode */
+extern DWORD pdc_con_out_mode_orig; /* preserved console output mode */
+extern bool pdc_mintty;             /* mintty (winpty is needed) detection */
+extern bool pdc_winterm;            /* Windows Terminal (windows 10) detection */
+extern int pdc_ambiguous_width;     /* width of ambiguous width characters (=1 or 2) */
+extern int pdc_emoji_width;         /* width of emoji characters (=1 or 2) */
 extern void PDC_set_console_cursor_position(int y, int x);
 extern void PDC_write_console_w(int y, int x, WCHAR *buffer, int len);
 extern void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len);
