@@ -144,9 +144,7 @@ int doupdate(void)
     else
         clearall = curscr->_clear;
 
-#ifdef PDC_WIN10_JP
-    /* for windows 10 jp */
-
+#ifdef PDC_FORCE_ALL_UPDATE
     /* output all lines */
     clearall = TRUE;
 
@@ -220,9 +218,7 @@ int doupdate(void)
 
     curscr->_clear = FALSE;
 
-#ifdef PDC_WIN10_JP
-    /* for windows 10 jp */
-
+#ifdef PDC_FORCE_ALL_UPDATE
     /* set cursor position */
     PDC_gotoyx(curscr->_cury, curscr->_curx);
 

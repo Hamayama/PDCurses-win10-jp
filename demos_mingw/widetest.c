@@ -1,6 +1,11 @@
-/****************************************
-           wide character test
- ****************************************/
+/*
+   Wide Character Display Test
+   2020-11-1 v1.10
+
+   OS       : Windows 10 (version 1909) (64bit)
+   DevTools : MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev1, Built by MSYS2 project))
+   Compile  : gcc -g -O2 -Wall -Wextra -o widetest.exe widetest.c
+*/
 
 #include <pdcurses.h>
 #include <stdlib.h>
@@ -12,6 +17,7 @@ int main(void)
 
     /* initialize */
     initscr();
+    noecho();
 
     /* set color */
     if (!has_colors()) {
@@ -50,6 +56,6 @@ int main(void)
     }
     refresh();
 
-    /* wait key input */
+    /* wait for key input */
     getch();
 }

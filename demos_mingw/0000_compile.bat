@@ -2,7 +2,7 @@
 set MSYSTEM=MINGW64
 copy C:\msys64\mingw64\bin\pdcurses.dll .
 for %%i in (
-    widetest
+    widetest inputtest
 ) do (
     gcc -g -O2 -Wall -Wextra -o %%i.exe %%i.c -lpdcurses
 )

@@ -39,5 +39,9 @@ extern int pdc_emoji_width;         /* width of emoji characters (=1 or 2) */
 extern void PDC_set_console_cursor_position(int y, int x);
 extern void PDC_write_console_w(int y, int x, WCHAR *buffer, int len);
 extern void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len);
+#ifdef PDC_VT_MOUSE_INPUT
+/* use vt escape sequence of mouse input */
+extern BOOL PDC_peek_console_input_w(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr);
+extern BOOL PDC_read_console_input_w(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr);
 #endif
-
+#endif

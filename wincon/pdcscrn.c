@@ -462,18 +462,9 @@ int PDC_scr_open(void)
 #ifdef PDC_WIN10_JP
     /* for windows 10 jp */
 
-    /* preserve console mode */
+    /* preserve console mode (input/output) */
     GetConsoleMode(pdc_con_in,  &pdc_con_in_mode_orig);
     GetConsoleMode(pdc_con_out, &pdc_con_out_mode_orig);
-
-    /* set console mode */
-    pdc_con_in_mode  = 0x0088 | pdc_quick_edit;
-    pdc_con_out_mode = 0x0010; /* LVB */
-    if (SetConsoleMode(pdc_con_out, 0x0004)) { /* VT */
-        pdc_con_out_mode |= 0x0004;
-    }
-    SetConsoleMode(pdc_con_in,  pdc_con_in_mode);
-    SetConsoleMode(pdc_con_out, pdc_con_out_mode);
 #endif
 
     SP->mouse_wait = PDC_CLICK_PERIOD;
@@ -513,6 +504,19 @@ int PDC_scr_open(void)
     SetConsoleCtrlHandler(_ctrl_break, TRUE);
 
     SP->_preserve = (getenv("PDC_PRESERVE_SCREEN") != NULL);
+
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+
+    /* set console mode (input/output) */
+    pdc_con_in_mode  = 0x0088 | pdc_quick_edit;
+    pdc_con_out_mode = 0x0015;     /* LVB + VT + PROCESSED_OUTPUT */
+    SetConsoleMode(pdc_con_in,  pdc_con_in_mode);
+    if (!SetConsoleMode(pdc_con_out, pdc_con_out_mode)) {
+        pdc_con_out_mode = 0x0010; /* LVB */
+        SetConsoleMode(pdc_con_out, pdc_con_out_mode);
+    }
+#endif
 
 #ifdef PDC_WIN10_JP
     /* for windows 10 jp */
@@ -718,7 +722,18 @@ void PDC_reset_shell_mode(void)
 #ifdef PDC_WIN10_JP
     /* for windows 10 jp */
 
-    /* restore console mode */
+#ifdef PDC_VT_MOUSE_INPUT
+    /* use vt escape sequence of mouse input */
+
+    /* disable vt escape sequence of mouse input (sgr-1006) */
+    if (pdc_winterm && SP->_trap_mbe) {
+        char *vt_mouse_input_disable_cmd = "\x1b[?1000l\x1b[?1003l\x1b[?1006l";
+        DWORD written;
+        WriteConsoleA(std_con_out, vt_mouse_input_disable_cmd, strlen(vt_mouse_input_disable_cmd), &written, NULL);
+    }
+#endif
+
+    /* restore console mode (input/output) */
     SetConsoleMode(pdc_con_in,  pdc_con_in_mode_orig);
     SetConsoleMode(pdc_con_out, pdc_con_out_mode_orig);
 #else

@@ -360,6 +360,11 @@ static int _process_key_event(void)
 
     SP->key_code = TRUE;
 
+    /* check vk range */
+    if (vk > 255) {
+        return -1;
+    }
+
     /* Save the key modifiers. Do this first to allow to detect e.g. a
        pressed CTRL key after a hit of NUMLOCK. */
 
@@ -500,6 +505,9 @@ static int _process_mouse_event(void)
         SP->mouse_status.button[i] =
             (MEV.dwButtonState & button_mask[i]) ? action : 0;
 
+#if PDC_DISABLE_CLICK_EVENT
+    /* disable mouse click event */
+#else
     if (action == BUTTON_PRESSED && MEV.dwButtonState & 7 && SP->mouse_wait)
     {
         /* Check for a click -- a PRESS followed immediately by a release */
@@ -517,24 +525,40 @@ static int _process_mouse_event(void)
             DWORD count;
             bool have_click = FALSE;
 
+#if defined(PDC_WIN10_JP) && defined(PDC_VT_MOUSE_INPUT) 
+            /* for windows 10 jp */
+            /* use vt escape sequence of mouse input */
+            PDC_peek_console_input_w(pdc_con_in, &ip, 1, &count);
+#else
             PeekConsoleInput(pdc_con_in, &ip, 1, &count);
+#endif
 
-            for (i = 0; i < 3; i++)
-            {
-                if (SP->mouse_status.button[i] == BUTTON_PRESSED &&
-                    !(ip.Event.MouseEvent.dwButtonState & button_mask[i]))
+            /* check mouse event */
+            if (count > 0 && ip.EventType == MOUSE_EVENT) {
+                for (i = 0; i < 3; i++)
                 {
-                    SP->mouse_status.button[i] = BUTTON_CLICKED;
-                    have_click = TRUE;
+                    if (SP->mouse_status.button[i] == BUTTON_PRESSED &&
+                        !(ip.Event.MouseEvent.dwButtonState & button_mask[i]))
+                    {
+                        SP->mouse_status.button[i] = BUTTON_CLICKED;
+                        have_click = TRUE;
+                    }
                 }
             }
 
             /* If a click was found, throw out the event */
 
             if (have_click)
+#if defined(PDC_WIN10_JP) && defined(PDC_VT_MOUSE_INPUT) 
+                /* for windows 10 jp */
+                /* use vt escape sequence of mouse input */
+                PDC_read_console_input_w(pdc_con_in, &ip, 1, &count);
+#else
                 ReadConsoleInput(pdc_con_in, &ip, 1, &count);
+#endif
         }
     }
+#endif
 
     SP->mouse_status.x = MEV.dwMousePosition.X;
     SP->mouse_status.y = MEV.dwMousePosition.Y;
@@ -606,8 +630,15 @@ int PDC_get_key(void)
     {
         DWORD count;
 
+#if defined(PDC_WIN10_JP) && defined(PDC_VT_MOUSE_INPUT) 
+        /* for windows 10 jp */
+        /* use vt escape sequence of mouse input */
+        PDC_read_console_input_w(pdc_con_in, &save_ip, 1, &count);
+        GetNumberOfConsoleInputEvents(pdc_con_in, &event_count);
+#else
         ReadConsoleInput(pdc_con_in, &save_ip, 1, &count);
         event_count--;
+#endif
 
         if (save_ip.EventType == MOUSE_EVENT ||
             save_ip.EventType == WINDOW_BUFFER_SIZE_EVENT)
@@ -675,7 +706,36 @@ int PDC_mouse_set(void)
 #ifdef PDC_WIN10_JP
     /* for windows 10 jp */
 
-    /* set console mode */
+#ifdef PDC_VT_MOUSE_INPUT
+    /* use vt escape sequence of mouse input */
+
+    /* set console mode (input) */
+    if (pdc_winterm) {
+        if (SP->_trap_mbe) {
+            pdc_con_in_mode |=  0x0200; /* enable vt escape sequence input */
+        } else {
+            pdc_con_in_mode &= ~0x0200; /* disable vt escape sequence input */
+        }
+    } else {
+        if (SP->_trap_mbe) {
+            pdc_con_in_mode |=  0x0010; /* mouse input on */
+            pdc_con_in_mode &= ~0x0040; /* quick edit mode off */
+        } else {
+            pdc_con_in_mode &= ~0x0010; /* mouse input off */
+            pdc_con_in_mode |= pdc_quick_edit; /* restore quick edit mode */
+        }
+    }
+    SetConsoleMode(pdc_con_in, pdc_con_in_mode);
+
+    /* enable vt escape sequence of mouse input (sgr-1006) */
+    if (pdc_winterm && SP->_trap_mbe) {
+        HANDLE std_con_out = GetStdHandle(STD_OUTPUT_HANDLE);
+        char *vt_mouse_input_enable_cmd  = "\x1b[?1000h\x1b[?1003h\x1b[?1006h";
+        DWORD written;
+        WriteConsoleA(std_con_out, vt_mouse_input_enable_cmd, strlen(vt_mouse_input_enable_cmd), &written, NULL);
+    }
+#else
+    /* set console mode (input) */
     if (SP->_trap_mbe) {
         pdc_con_in_mode |=  0x0010; /* mouse input on */
         pdc_con_in_mode &= ~0x0040; /* quick edit mode off */
@@ -684,6 +744,8 @@ int PDC_mouse_set(void)
         pdc_con_in_mode |= pdc_quick_edit; /* restore quick edit mode */
     }
     SetConsoleMode(pdc_con_in, pdc_con_in_mode);
+#endif
+
 #else
     SetConsoleMode(pdc_con_in, SP->_trap_mbe ?
                    (ENABLE_MOUSE_INPUT|0x0088) : (pdc_quick_edit|0x0088));

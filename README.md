@@ -44,7 +44,10 @@
    `( pdcurses/refresh.c )`  
    もともと、refresh (doupdate) 時は、差分だけを描画する処理になっていた。  
    しかし、文字幅の変化による更新もれが発生したため、  
-   毎回、画面全体を描画するように変更した。
+   毎回、画面全体を描画するように変更した。  
+   → その後、本機能は、シンボル PDC_FORCE_ALL_UPDATE を define することで、  
+   有効になるようにした。  
+   現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
 4. wincon の Makefile の変更  
    `( wincon/Makefile )`  
@@ -70,7 +73,7 @@
    (Unicode データの入手先は以下。  
    https://unicode.org/Public/UNIDATA/EastAsianWidth.txt  
    https://unicode.org/Public/UNIDATA/emoji/emoji-data.txt  
-   また、データ抽出用のツールは、[tools_unicode][2] フォルダに入れておいた)  
+   また、データ抽出用のツールは、[tools_unicode][3] フォルダに入れておいた)  
    (ツールの実行には Gauche が必要))  
    (実装の詳細については、[wincon/pdcdisp_sub.c][1] を参照)  
    
@@ -140,7 +143,27 @@
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
 15. SetConsoleMode() の処理見直し  
+    `( wincon/pdcwin.h  wincon/pdcscrn.c  wincon/pdcsetsc.c  wincon/pdckbd.c )`  
     現在の状態を、変数で管理するようにした。
+
+16. Windows Terminal で、マウス操作に対応  
+    `( wincon/pdcwin.h  wincon/pdcscrn.c  wincon/pdckbd.c  wincon/pdckbd_sub.c )`  
+    シンボル PDC_VT_MOUSE_INPUT を define することで、  
+    Windows Terminal の場合に、  
+    VT エスケープシーケンスによるマウス入力を受け付けられるようにした。  
+    ただ、一部互換性が損なわれるケースが存在する。  
+    (実装の詳細については、[wincon/pdckbd_sub.c][2] を参照)  
+    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
+
+17. マウスクリックイベントの無効化機能を追加  
+    `( wincon/pdckbd.c )`  
+    シンボル PDC_DISABLE_CLICK_EVENT を define することで、  
+    マウスクリックイベントの検出を抑制できるようにした。  
+    (押し下げと押し上げイベントのみになる)  
+    これは、Windows Terminal で、マウスのボタンを長押しすると、  
+    押し下げイベントが2回発生して、  
+    マウスクリックイベントの判定を誤るケースが出たため、追加した。  
+    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
 
 ## インストール方法
@@ -198,11 +221,10 @@
 - 以上です。
 
 
-## 使い方
-- MinGW 用のサンプルソースを [demos_mingw][3] フォルダに格納しました。  
-  widetest.c が C のサンプルソースです。  
-  0000_compile.bat を実行すると、コンパイルを行い、widetest.exe が生成されます。  
-  このファイルを実行すると、カラフルな日本語が表示されます。
+## 使用例
+- MinGW 用のサンプルソースを [demos_mingw][4] フォルダに格納しました。  
+  widetest.c が日本語表示のサンプルで、inputtest.c がキー/マウス入力のサンプルです。  
+  0000_compile.bat を実行すると、コンパイルを行い、実行ファイルが生成されます。
 
 
 ## その他 問題点等
@@ -260,7 +282,8 @@
 13. mintty (winpty が必要) で、絵文字を表示できない (Windows 10)
 
 14. Windows Terminal で、マウスイベントが取れない (Windows 10)  
-    (Windows Console API のマウスイベント関連が未実装とのこと)
+    (Windows Console API のマウスイベント関連が未実装とのこと)  
+    → VT エスケープシーケンスでマウス入力を受け付けられるようにした。
 
 
 ## 環境等
@@ -297,13 +320,16 @@
 - 2020-10-21 v3.9-jp0009 内部処理見直し  
   シンボル名変更 ( PDC_RESIZE_NO_CHECK → PDC_NO_CHECK_ON_RESIZE )
 - 2020-10-26 v3.9-jp0010 SetConsoleMode() の処理見直し
+- 2020-11-1  v3.9-jp0011 Windows Terminal で、マウス操作に対応  
+  マウスクリックイベントの無効化機能を追加
 
 
-(2020-10-26)
+(2020-11-1)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
-[2]:https://github.com/Hamayama/PDCurses-win10-jp/tree/master/tools_unicode
-[3]:https://github.com/Hamayama/PDCurses-win10-jp/tree/master/demos_mingw
+[2]:https://github.com/Hamayama/PDCurses-win10-jp/tree/master/wincon/pdckbd_sub.c
+[3]:https://github.com/Hamayama/PDCurses-win10-jp/tree/master/tools_unicode
+[4]:https://github.com/Hamayama/PDCurses-win10-jp/tree/master/demos_mingw
 
 
