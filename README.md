@@ -285,6 +285,22 @@
     (Windows Console API のマウスイベント関連が未実装とのこと)  
     → VT エスケープシーケンスでマウス入力を受け付けられるようにした。
 
+15. Windows Terminal で、Alt + 矢印キー が入力できない  
+    → Windows Terminal で、Pane 機能 (画面分割) 関連の操作キーとなっているため。  
+    https://github.com/microsoft/terminal/issues/3729  
+    Windows Terminal の設定ファイル (settings.json) 内の  
+    キーバインドの設定箇所に以下を追加すると、入力可能になる。
+    ```
+        { "command": "unbound", "keys": [ "alt+down" ] },
+        { "command": "unbound", "keys": [ "alt+left" ] },
+        { "command": "unbound", "keys": [ "alt+right" ] },
+        { "command": "unbound", "keys": [ "alt+up" ] },
+        { "command": "unbound", "keys": [ "alt+shift+down" ] },
+        { "command": "unbound", "keys": [ "alt+shift+left" ] },
+        { "command": "unbound", "keys": [ "alt+shift+right" ] },
+        { "command": "unbound", "keys": [ "alt+shift+up" ] },
+    ```
+
 
 ## 環境等
 - OS
@@ -322,9 +338,10 @@
 - 2020-10-26 v3.9-jp0010 SetConsoleMode() の処理見直し
 - 2020-11-1  v3.9-jp0011 Windows Terminal で、マウス操作に対応  
   マウスクリックイベントの無効化機能を追加
+- 2020-11-2  v3.9-jp0012 VT エスケープシーケンスの処理を修正
 
 
-(2020-11-1)
+(2020-11-2)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
