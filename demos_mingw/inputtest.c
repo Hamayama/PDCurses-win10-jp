@@ -61,4 +61,5 @@ int main(void)
 
     /* finished */
     endwin();
+    return 0;
 }

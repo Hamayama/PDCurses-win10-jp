@@ -58,4 +58,8 @@ int main(void)
 
     /* wait for key input */
     getch();
+
+    /* finished */
+    endwin();
+    return 0;
 }
