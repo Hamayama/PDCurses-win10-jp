@@ -282,8 +282,11 @@
 13. mintty (winpty が必要) で、絵文字を表示できない (Windows 10)
 
 14. Windows Terminal で、マウスイベントが取れない (Windows 10)  
-    (Windows Console API のマウスイベント関連が未実装とのこと)  
-    → VT エスケープシーケンスでマウス入力を受け付けられるようにした。
+    現状、Windows Terminal では、Windows Console API のマウスイベント関連が、  
+    未実装となっている。  
+    https://github.com/microsoft/terminal/issues/376  
+    ( VT エスケープシーケンスのみ、マウス入力に対応している )  
+    → VT エスケープシーケンスによるマウス入力を受け付けられるようにした。
 
 15. Windows Terminal で、Alt + 矢印キー が入力できない  
     → Windows Terminal で、Pane 機能 (画面分割) 関連の操作キーとなっているため。  
