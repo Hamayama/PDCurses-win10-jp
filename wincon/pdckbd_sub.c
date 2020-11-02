@@ -93,6 +93,7 @@ static const struct vt_input vt_input_table[] = {
 /* inner functions */
 static int is_vt_input(PINPUT_RECORD input_rec_ptr);
 static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR uchar, DWORD ctrl);
+static BOOL consume_vt_input(HANDLE hin, int input_seq_len);
 static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr, int peek_flag);
 
 /* api functions */
@@ -123,6 +124,29 @@ static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR u
     input_rec_ptr->Event.KeyEvent.dwControlKeyState = ctrl;
 }
 
+/* consume vt escape sequence */
+static BOOL consume_vt_input(HANDLE hin, int input_seq_len) {
+    INPUT_RECORD input_rec[MAX_INPUT_REC_LEN];
+    DWORD read_event_num;
+
+    /* check arguments */
+    if (input_seq_len > MAX_INPUT_REC_LEN) {
+        DBG_PRINT("internal error. (consume)\n");
+        return FALSE;
+    }
+
+    /* consume vt escape sequence */
+    if (!ReadConsoleInputW(hin, input_rec, input_seq_len, &read_event_num)) {
+        DBG_PRINT("ReadConsoleInputW failed. (consume)\n");
+        return FALSE;
+    }
+    if ((int)read_event_num < input_seq_len) {
+        DBG_PRINT("ReadConsoleInputW returned before read. (consume)\n");
+        return FALSE;
+    }
+    return TRUE;
+}
+
 /* peek/read console input
     limitations :
      - only one input record is returned.
@@ -132,6 +156,7 @@ static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR u
      - virtual key code and virtual scan code casually become zero.
      - Alt + X key combination input is split into Esc and X key events.
      - mouse coordinates origin is top left of screen (not top left of buffer).
+     - GetLastError() is not supported.
 */
 BOOL PDC_peek_console_input_w(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr)
 {
@@ -149,8 +174,10 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
     static int ctrl_state = 0;
     INPUT_RECORD input_rec2[MAX_INPUT_REC_LEN];
     DWORD read_event_num2;
-    INPUT_RECORD input_rec3[MAX_INPUT_REC_LEN];
-    DWORD read_event_num3;
+    char input_seq[MAX_INPUT_REC_LEN + 1];
+    int input_seq_len;
+    int input_seq_len2;
+    int vt_input_table_len;
     int mouse_input_state;
     int mouse_button_no;
     int mouse_x;
@@ -158,9 +185,6 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
     int mouse_button_press;
     int ret_val;
     int i;
-    char input_seq[MAX_INPUT_REC_LEN + 1];
-    int input_seq_len;
-    int vt_input_table_len;
 
     /* check arguments */
     if (input_rec_len == 0) {
@@ -248,13 +272,24 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
     if (is_vt_input(&input_rec2[0]) &&
         input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x1b) {
 
+        /* read vt escape sequence */
+        input_seq_len = 0;
+        for (i = 1; i < (int)read_event_num2; i++) {
+            if (is_vt_input(&input_rec2[i]) &&
+                input_rec2[i].Event.KeyEvent.uChar.UnicodeChar <= 0x7f) {
+                input_seq[input_seq_len] = input_rec2[i].Event.KeyEvent.uChar.UnicodeChar;
+                input_seq_len++;
+                continue;
+            }
+            break;
+        }
+        input_seq[input_seq_len] = 0;
+
         /* process vt escape sequence of mouse input (sgr-1006) '[<' */
-        if (read_event_num2 >= 3 &&
-            is_vt_input(&input_rec2[1]) &&
-            input_rec2[1].Event.KeyEvent.uChar.UnicodeChar == 0x5b &&
-            is_vt_input(&input_rec2[2]) &&
-            input_rec2[2].Event.KeyEvent.uChar.UnicodeChar == 0x3c) {
-            input_seq_len = 2;
+        if (input_seq_len >= 2 &&
+            input_seq[0] == 0x5b &&
+            input_seq[1] == 0x3c) {
+            input_seq_len2 = 2;
 
             /* read parameters 'Db ; Dx ; Dy M/m' */
             mouse_input_state = 0;
@@ -263,66 +298,56 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
             mouse_y = 0;
             mouse_button_press = 0;
             ret_val = FALSE;
-            for (i = 3; i < (int)read_event_num2; i++) {
+            for (i = 2; i < input_seq_len; i++) {
                 switch (mouse_input_state) {
                     case 0:
                         /* read mouse button number 'Db' */
-                        if (is_vt_input(&input_rec2[i]) &&
-                            input_rec2[i].Event.KeyEvent.uChar.UnicodeChar >= 0x30 &&
-                            input_rec2[i].Event.KeyEvent.uChar.UnicodeChar <= 0x39) {
-                            input_seq_len++;
+                        if (input_seq[i] >= 0x30 && input_seq[i] <= 0x39) {
+                            input_seq_len2++;
                             mouse_button_no *= 10;
-                            mouse_button_no += input_rec2[i].Event.KeyEvent.uChar.UnicodeChar - 0x30;
+                            mouse_button_no += input_seq[i] - 0x30;
                             if (mouse_button_no < 10000) {
                                 continue;
                             }
                         }
                         /* read delimiter ';' */
-                        if (is_vt_input(&input_rec2[i]) &&
-                            input_rec2[i].Event.KeyEvent.uChar.UnicodeChar == 0x3b) {
-                            input_seq_len++;
+                        if (input_seq[i] == 0x3b) {
+                            input_seq_len2++;
                             mouse_input_state++;
                             continue;
                         }
                         break;
                     case 1:
                         /* read mouse position x 'Dx' */
-                        if (is_vt_input(&input_rec2[i]) &&
-                            input_rec2[i].Event.KeyEvent.uChar.UnicodeChar >= 0x30 &&
-                            input_rec2[i].Event.KeyEvent.uChar.UnicodeChar <= 0x39) {
-                            input_seq_len++;
+                        if (input_seq[i] >= 0x30 && input_seq[i] <= 0x39) {
+                            input_seq_len2++;
                             mouse_x *= 10;
-                            mouse_x += input_rec2[i].Event.KeyEvent.uChar.UnicodeChar - 0x30;
+                            mouse_x += input_seq[i] - 0x30;
                             if (mouse_x < 10000) {
                                 continue;
                             }
                         }
                         /* read delimiter ';' */
-                        if (is_vt_input(&input_rec2[i]) &&
-                            input_rec2[i].Event.KeyEvent.uChar.UnicodeChar == 0x3b) {
-                            input_seq_len++;
+                        if (input_seq[i] == 0x3b) {
+                            input_seq_len2++;
                             mouse_input_state++;
                             continue;
                         }
                         break;
                     case 2:
                         /* read mouse position y 'Dy' */
-                        if (is_vt_input(&input_rec2[i]) &&
-                            input_rec2[i].Event.KeyEvent.uChar.UnicodeChar >= 0x30 &&
-                            input_rec2[i].Event.KeyEvent.uChar.UnicodeChar <= 0x39) {
-                            input_seq_len++;
+                        if (input_seq[i] >= 0x30 && input_seq[i] <= 0x39) {
+                            input_seq_len2++;
                             mouse_y *= 10;
-                            mouse_y += input_rec2[i].Event.KeyEvent.uChar.UnicodeChar - 0x30;
+                            mouse_y += input_seq[i] - 0x30;
                             if (mouse_y < 10000) {
                                 continue;
                             }
                         }
                         /* read button on/off 'M/m' */
-                        if (is_vt_input(&input_rec2[i]) &&
-                            (input_rec2[i].Event.KeyEvent.uChar.UnicodeChar == 0x4d ||
-                             input_rec2[i].Event.KeyEvent.uChar.UnicodeChar == 0x6d)) {
-                            input_seq_len++;
-                            mouse_button_press = (input_rec2[i].Event.KeyEvent.uChar.UnicodeChar == 0x4d) ? 1 : 0;
+                        if ((input_seq[i] == 0x4d || input_seq[i] == 0x6d)) {
+                            input_seq_len2++;
+                            mouse_button_press = (input_seq[i] == 0x4d) ? 1 : 0;
 
                             /* make mouse event */
                             input_rec_ptr->EventType = MOUSE_EVENT;
@@ -388,43 +413,21 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
             }
             /* check failure */
             if (ret_val == FALSE) {
-                if (i < (int)read_event_num2) {
-                    DBG_PRINT("mouse input failed. (wrong data)\n");
-                } else {
-                    DBG_PRINT("mouse input failed. (not completed).\n");
-                }
+                DBG_PRINT("mouse input failed.\n");
             }
-            /* consume escape sequence */
-            if (!peek_flag) {
-                if (!ReadConsoleInputW(hin, input_rec3, input_seq_len, &read_event_num3)) {
-                    DBG_PRINT("ReadConsoleInputW failed. (input_rec3) (mouse)\n");
-                    return FALSE;
-                }
-                if ((int)read_event_num3 < input_seq_len) {
-                    DBG_PRINT("ReadConsoleInputW returned before read. (input_rec3) (mouse)\n");
-                    return FALSE;
-                }
+            /* consume vt escape sequence */
+            if (!peek_flag && !consume_vt_input(hin, input_seq_len2)) {
+                return FALSE;
             }
             return ret_val;
         }
 
         /* process other vt escape sequence */
-        input_seq_len = 0;
-        for (i = 1; i < (int)read_event_num2; i++) {
-            if (is_vt_input(&input_rec2[i]) &&
-                input_rec2[i].Event.KeyEvent.uChar.UnicodeChar <= 0x7f) {
-                input_seq[input_seq_len] = input_rec2[i].Event.KeyEvent.uChar.UnicodeChar;
-                input_seq_len++;
-                continue;
-            }
-            break;
-        }
-        input_seq[input_seq_len] = 0;
         if (input_seq_len > 0) {
             /* search vt escape sequence input table */
             vt_input_table_len = sizeof(vt_input_table) / sizeof(struct vt_input);
             for (i = 0; i < vt_input_table_len; i++) {
-                if (vt_input_table[i].seq_len <= input_seq_len &&
+                if (input_seq_len >= vt_input_table[i].seq_len &&
                     ((vt_input_table[i].modifier_index <= 0 &&
                       strncmp(vt_input_table[i].seq, input_seq, vt_input_table[i].seq_len) == 0) ||
                      (strncmp(vt_input_table[i].seq, input_seq, vt_input_table[i].modifier_index) == 0 &&
@@ -439,16 +442,9 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
                                   vt_input_table[i].uchar,
                                   ctrl_state | vt_input_table[i].ctrl);
 
-                    /* consume escape sequence */
-                    if (!peek_flag) {
-                        if (!ReadConsoleInputW(hin, input_rec3, vt_input_table[i].seq_len, &read_event_num3)) {
-                            DBG_PRINT("ReadConsoleInputW failed. (input_rec3) (other)\n");
-                            return FALSE;
-                        }
-                        if ((int)read_event_num3 < vt_input_table[i].seq_len) {
-                            DBG_PRINT("ReadConsoleInputW returned before read. (input_rec3) (other)\n");
-                            return FALSE;
-                        }
+                    /* consume vt escape sequence */
+                    if (!peek_flag && !consume_vt_input(hin, vt_input_table[i].seq_len)) {
+                        return FALSE;
                     }
                     return TRUE;
                 }
