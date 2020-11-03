@@ -144,6 +144,7 @@
 
 15. SetConsoleMode() の処理見直し  
     `( wincon/pdcwin.h  wincon/pdcscrn.c  wincon/pdcsetsc.c  wincon/pdckbd.c )`  
+    (複数の箇所で設定されており、最終的な状態がよく分からなかったため、)  
     現在の状態を、変数で管理するようにした。
 
 16. Windows Terminal で、マウス操作に対応  
@@ -151,7 +152,6 @@
     シンボル PDC_VT_MOUSE_INPUT を define することで、  
     Windows Terminal の場合に、  
     VT エスケープシーケンスによるマウス入力を受け付けられるようにした。  
-    ただ、一部互換性が損なわれるケースが存在する。  
     (実装の詳細については、[wincon/pdckbd_sub.c][2] を参照)  
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
@@ -288,7 +288,7 @@
     ( VT エスケープシーケンスのみ、マウス入力に対応している )  
     → VT エスケープシーケンスによるマウス入力を受け付けられるようにした。
 
-15. Windows Terminal で、Alt + 矢印キー が入力できない  
+15. Windows Terminal で、Alt + 矢印キー が入力できない (Windows 10)  
     → Windows Terminal で、Pane 機能 (画面分割) 関連の操作キーとなっているため。  
     https://github.com/microsoft/terminal/issues/3729  
     Windows Terminal の設定ファイル (settings.json) 内の  
@@ -312,13 +312,15 @@
 - 環境
   - MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev1, Built by MSYS2 project)) (Windows 10)
   - MSYS2/MinGW-w64 (64bit) (gcc version 9.2.0 (Rev2, Built by MSYS2 project)) (Windows 8.1)
+  - winpty-fixes 0.4.4-dev ( https://github.com/Hamayama/winpty-fixes ) (Windows 10)
+  - winpty 0.4.3 (Windows 8.1)
 - 端末
   - コマンドプロンプト (cmd.exe)
   - ConEmu 200713 (Windows 10)
   - ConEmu 191012 (Windows 8.1)
-  - mintty 3.3.0 (winpty 0.4.3 が必要) (Windows 10)
-  - mintty 3.1.4 (winpty 0.4.3 が必要) (Windows 8.1)
-  - Windows Terminal 1.3.2651.0 (Windows 10 のみ)
+  - mintty 3.3.0 (winpty が必要) (Windows 10)
+  - mintty 3.1.4 (winpty が必要) (Windows 8.1)
+  - Windows Terminal 1.3.2651.0 (Windows 10)
 - ライセンス
   - オリジナルと同様とします
 
@@ -345,7 +347,7 @@
 - 2020-11-2  v3.9-jp0013 VT エスケープシーケンスの処理を一部見直し
 
 
-(2020-11-2)
+(2020-11-3)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
