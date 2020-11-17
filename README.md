@@ -310,17 +310,17 @@
   - Windows 10 (version 1909) (64bit)
   - Windows 8.1 (64bit)
 - 環境
-  - MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev1, Built by MSYS2 project)) (Windows 10)
+  - MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev5, Built by MSYS2 project)) (Windows 10)
   - MSYS2/MinGW-w64 (64bit) (gcc version 9.2.0 (Rev2, Built by MSYS2 project)) (Windows 8.1)
   - winpty-fixes 0.4.4-dev ( https://github.com/Hamayama/winpty-fixes ) (Windows 10)
   - winpty 0.4.3 (Windows 8.1)
 - 端末
   - コマンドプロンプト (cmd.exe)
-  - ConEmu 200713 (Windows 10)
+  - ConEmu 201011 (Windows 10)
   - ConEmu 191012 (Windows 8.1)
-  - mintty 3.3.0 (winpty が必要) (Windows 10)
+  - mintty 3.4.1 (winpty が必要) (Windows 10)
   - mintty 3.1.4 (winpty が必要) (Windows 8.1)
-  - Windows Terminal 1.3.2651.0 (Windows 10)
+  - Windows Terminal 1.4.3141.0 (Windows 10)
 - ライセンス
   - オリジナルと同様とします
 
@@ -345,9 +345,10 @@
   マウスクリックイベントの無効化機能を追加
 - 2020-11-2  v3.9-jp0012 VT エスケープシーケンスの処理を修正
 - 2020-11-2  v3.9-jp0013 VT エスケープシーケンスの処理を一部見直し
+- 2020-11-17 v3.9-jp0014 内部処理見直し(pdckbd_sub.c, pdcdisp_sub.c)
 
 
-(2020-11-3)
+(2020-11-17)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c

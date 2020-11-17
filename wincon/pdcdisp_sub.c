@@ -16,14 +16,16 @@ static int is_surrogate(int ch);
 static int is_wide(int ch);
 static int is_ambwidth(int ch);
 static int is_emoji(int ch);
-static int adjust_cur_x(int y, int x);
-static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len);
-static void goto_yx(int y, int x);
+static int adjust_cur_x(int y, int x, int disp_width, int disp_height, chtype *scr_line_buf);
+static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len, int disp_width, int disp_height);
+static BOOL goto_yx(HANDLE hout, int y, int x);
 
 /* api functions */
-void PDC_set_console_cursor_position(int y, int x);
-void PDC_write_console_w(int y, int x, WCHAR *buffer, int len);
-void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len);
+BOOL PDC_set_console_cursor_position(HANDLE hout, COORD cur_pos, COORD disp_size, chtype *scr_line_buf);
+BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
+                         COORD cur_pos, COORD disp_size, chtype *scr_line_buf);
+BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
+                                        WORD attr, COORD cur_pos, COORD disp_size, chtype *scr_line_buf);
 
 /* search a character from interval table */
 static int search_table(int ch, const struct interval *table, int size)
@@ -237,11 +239,8 @@ static int is_emoji(int ch)
 }
 
 /* adjust cursor-x position */
-static int adjust_cur_x(int y, int x)
+static int adjust_cur_x(int y, int x, int disp_width, int disp_height, chtype *scr_line_buf)
 {
-    int disp_width  = SP->cols;
-    int disp_height = SP->lines;
-    chtype *srcp;
     int i;
     int new_x;
     int ch;
@@ -253,9 +252,8 @@ static int adjust_cur_x(int y, int x)
 
     /* adjust cursor-x position */
     new_x = 0;
-    srcp = curscr->_y[y];
     for (i = 0; i < x; i++) {
-        ch = srcp[i] & A_CHARTEXT;
+        ch = scr_line_buf[i] & A_CHARTEXT;
         /* zero-width-space character (U+200B) */
         if (ch == 0x200b) {
             continue;
@@ -278,10 +276,8 @@ static int adjust_cur_x(int y, int x)
 
 /* adjust buffer and length */
 /* (the part of string that exceeds display width is dropped) */
-static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len)
+static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len, int disp_width, int disp_height)
 {
-    int disp_width  = SP->cols;
-    int disp_height = SP->lines;
     int i, j;
     int new_x;
     int new_len;
@@ -305,7 +301,7 @@ static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len)
 #endif
 
     /* adjust cursor-x position */
-    /* new_x = adjust_cur_x(y, x); */
+    /* new_x = adjust_cur_x(y, x, disp_width, disp_height, scr_line_buf); */
     new_x = x;
 
     /* check start position */
@@ -351,31 +347,47 @@ static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len)
 }
 
 /* set cursor position */
-static void goto_yx(int y, int x)
+static BOOL goto_yx(HANDLE hout, int y, int x)
 {
     COORD coord;
     CONSOLE_SCREEN_BUFFER_INFO scrn_info;
 
     /* workaround for cursor position problem of windows 10
        ( https://github.com/microsoft/terminal/issues/724 ) */
-    GetConsoleScreenBufferInfo(pdc_con_out, &scrn_info);
+    GetConsoleScreenBufferInfo(hout, &scrn_info);
     coord.X = 0;
     coord.Y = scrn_info.dwCursorPosition.Y;
-    SetConsoleCursorPosition(pdc_con_out, coord);
+    SetConsoleCursorPosition(hout, coord);
     coord.X = x;
     coord.Y = y;
-    SetConsoleCursorPosition(pdc_con_out, coord);
+    return SetConsoleCursorPosition(hout, coord);
 }
 
-/* set cursor position */
-void PDC_set_console_cursor_position(int y, int x)
+/* set cursor position
+    limitations:
+     - not compatible with Win32 API (SetConsoleCursorPosition).
+*/
+BOOL PDC_set_console_cursor_position(HANDLE hout, COORD cur_pos, COORD disp_size, chtype *scr_line_buf)
 {
-    goto_yx(y, adjust_cur_x(y, x));
+    int x = cur_pos.X;
+    int y = cur_pos.Y;
+    int disp_width  = disp_size.X;
+    int disp_height = disp_size.Y;
+    return goto_yx(hout, y, adjust_cur_x(y, x, disp_width, disp_height, scr_line_buf));
 }
 
-/* write buffer to console */
-void PDC_write_console_w(int y, int x, WCHAR *buffer, int len)
+/* write buffer to console
+    limitations:
+     - not compatible with Win32 API (WriteConsoleW).
+     - GetLastError() is not supported.
+*/
+BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
+                         COORD cur_pos, COORD disp_size, chtype *scr_line_buf)
 {
+    int x = cur_pos.X;
+    int y = cur_pos.Y;
+    int disp_width  = disp_size.X;
+    int disp_height = disp_size.Y;
     int i;
     int len1;
     int x1, x2;
@@ -385,21 +397,22 @@ void PDC_write_console_w(int y, int x, WCHAR *buffer, int len)
     DWORD written;
 
     /* adjust cursor-x position */
-    x1 = adjust_cur_x(y, x);
+    x1 = adjust_cur_x(y, x, disp_width, disp_height, scr_line_buf);
 
     /* adjust buffer and length */
-    len = adjust_buf_and_len(y, x1, buffer, len);
+    len = adjust_buf_and_len(y, x1, buffer, len, disp_width, disp_height);
 
     /* check buffer length */
     if (len <= 0) {
-        return;
+        *written_num_ptr = 0;
+        return FALSE;
     }
 
     /* write buffer to console */
     len1 = 0;
     x2 = x1;
     buffer1 = buffer;
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < (int)len; i++) {
         ch = buffer[i];
         len1++;
         x2++;
@@ -415,67 +428,69 @@ void PDC_write_console_w(int y, int x, WCHAR *buffer, int len)
                    (is_emoji(ch) && pdc_emoji_width > 1)) {
             x2++;
             /* clear 2 cells for half size font */
-            goto_yx(y, x2 - 2);
-            WriteConsoleW(pdc_con_out, space, 2, &written, NULL);
-            goto_yx(y, x1);
-            WriteConsoleW(pdc_con_out, buffer1, len1, &written, NULL);
+            goto_yx(hout, y, x2 - 2);
+            WriteConsoleW(hout, space, 2, &written, NULL);
+            goto_yx(hout, y, x1);
+            WriteConsoleW(hout, buffer1, len1, &written, NULL);
             buffer1 += len1;
             len1 = 0;
             x1 = x2;
         }
     }
     if (len1 > 0) {
-        goto_yx(y, x1);
-        WriteConsoleW(pdc_con_out, buffer1, len1, &written, NULL);
+        goto_yx(hout, y, x1);
+        WriteConsoleW(hout, buffer1, len1, &written, NULL);
     }
+
+    /* set return value */
+    *written_num_ptr = len;
+    return TRUE;
 }
 
-/* write buffer to console */
-void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len)
+/* write buffer to console
+    limitations:
+     - not compatible with Win32 API (WriteConsoleOutputW).
+     - GetLastError() is not supported.
+*/
+BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
+                                        WORD attr, COORD cur_pos, COORD disp_size, chtype *scr_line_buf)
 {
+    int x = cur_pos.X;
+    int y = cur_pos.Y;
+    int disp_width  = disp_size.X;
+    int disp_height = disp_size.Y;
     int i;
     int len1;
     int x1, x2;
-    WCHAR buffer[512];
+    WCHAR space[4] = {0x0020, 0x0020, 0, 0};
     WCHAR *buffer1;
-    WORD  attr;
-    DWORD attr_len;
     int ch;
     COORD coord;
-    WCHAR space[4] = {0x0020, 0x0020, 0, 0};
     DWORD written;
 
-    /* check buffer length */
-    if (len > 512) {
-        return;
-    }
-
     /* adjust cursor-x position */
-    x1 = adjust_cur_x(y, x);
+    x1 = adjust_cur_x(y, x, disp_width, disp_height, scr_line_buf);
 
     /* adjust buffer and length */
-    for (i = 0; i < len; i++) {
-        buffer[i] = ci_buffer[i].Char.UnicodeChar;
-    }
-    len = adjust_buf_and_len(y, x1, buffer, len);
+    len = adjust_buf_and_len(y, x1, buffer, len, disp_width, disp_height);
 
     /* check buffer length */
     if (len <= 0) {
-        return;
+        *written_num_ptr = 0;
+        return FALSE;
     }
 
     /* write attribute to console */
-    attr = ci_buffer[0].Attributes;
-    attr_len = adjust_cur_x(y, x + len) - x1;
+    len1 = adjust_cur_x(y, x + len, disp_width, disp_height, scr_line_buf) - x1;
     coord.X = x1;
     coord.Y = y;
-    FillConsoleOutputAttribute(pdc_con_out, attr, attr_len, coord, &written);
+    FillConsoleOutputAttribute(hout, attr, len1, coord, &written);
 
     /* write buffer to console */
     len1 = 0;
     x2 = x1;
     buffer1 = buffer;
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < (int)len; i++) {
         ch = buffer[i];
         len1++;
         x2++;
@@ -493,10 +508,10 @@ void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len)
             /* clear 2 cells for half size font */
             coord.X = x2 - 2;
             coord.Y = y;
-            WriteConsoleOutputCharacterW(pdc_con_out, space, 2, coord, &written);
+            WriteConsoleOutputCharacterW(hout, space, 2, coord, &written);
             coord.X = x1;
             coord.Y = y;
-            WriteConsoleOutputCharacterW(pdc_con_out, buffer1, len1, coord, &written);
+            WriteConsoleOutputCharacterW(hout, buffer1, len1, coord, &written);
             buffer1 += len1;
             len1 = 0;
             x1 = x2;
@@ -505,7 +520,11 @@ void PDC_write_console_output_w(int y, int x, CHAR_INFO *ci_buffer, int len)
     if (len1 > 0) {
         coord.X = x1;
         coord.Y = y;
-        WriteConsoleOutputCharacterW(pdc_con_out, buffer1, len1, coord, &written);
+        WriteConsoleOutputCharacterW(hout, buffer1, len1, coord, &written);
     }
+
+    /* set return value */
+    *written_num_ptr = len;
+    return TRUE;
 }
 #endif

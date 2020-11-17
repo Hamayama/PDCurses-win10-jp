@@ -36,14 +36,14 @@ bool pdc_conemu, pdc_ansi;
 
 #ifdef PDC_WIN10_JP
 /* for windows 10 jp */
-DWORD pdc_con_in_mode;        /* console input mode */
-DWORD pdc_con_out_mode;       /* console output mode */
-DWORD pdc_con_in_mode_orig;   /* preserved console input mode */
-DWORD pdc_con_out_mode_orig;  /* preserved console output mode */
-bool pdc_mintty;              /* mintty (winpty is needed) detection */
-bool pdc_winterm;             /* Windows Terminal (windows 10) detection */
-int pdc_ambiguous_width;      /* width of ambiguous width characters (=1 or 2) */
-int pdc_emoji_width;          /* width of emoji characters (=1 or 2) */
+DWORD pdc_con_in_mode;       /* console input mode */
+DWORD pdc_con_out_mode;      /* console output mode */
+DWORD pdc_con_in_mode_orig;  /* preserved console input mode */
+DWORD pdc_con_out_mode_orig; /* preserved console output mode */
+bool pdc_mintty;             /* mintty (winpty is needed) detection */
+bool pdc_winterm;            /* Windows Terminal (windows 10) detection */
+int pdc_ambiguous_width;     /* width of ambiguous width characters (=1 or 2) */
+int pdc_emoji_width;         /* width of emoji characters (=1 or 2) */
 #endif
 
 enum { PDC_RESTORE_NONE, PDC_RESTORE_BUFFER };

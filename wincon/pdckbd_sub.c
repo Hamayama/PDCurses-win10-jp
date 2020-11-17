@@ -148,7 +148,7 @@ static BOOL consume_vt_input(HANDLE hin, int input_seq_len) {
 }
 
 /* peek/read console input
-    limitations :
+    limitations:
      - only one input record is returned.
      - separated receive of vt escape sequence is not supported.
      - double click event is not supported.
@@ -261,11 +261,18 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
         return TRUE;
     }
 
-    /* get modifier key state */
-    if (input_rec2[0].EventType == KEY_EVENT &&
-        (input_rec2[0].Event.KeyEvent.wVirtualKeyCode  != 0 ||
-         input_rec2[0].Event.KeyEvent.wVirtualScanCode != 0)) {
-        ctrl_state = input_rec2[0].Event.KeyEvent.dwControlKeyState;
+    /* get/set modifier key state */
+    if (input_rec2[0].EventType == KEY_EVENT) {
+        if (!is_vt_input(&input_rec2[0])) {
+            /* get modifier key state */
+            ctrl_state = input_rec2[0].Event.KeyEvent.dwControlKeyState;
+        } else {
+            /* vt escape sequence doesn't have modifier key state.
+               so, we set the current state here. */
+            input_rec_ptr->Event.KeyEvent.dwControlKeyState = ctrl_state;
+            /* left alt key state is dropped for PDCurses */
+            input_rec_ptr->Event.KeyEvent.dwControlKeyState &= ~LEFT_ALT_PRESSED;
+        }
     }
 
     /* process vt escape sequence */

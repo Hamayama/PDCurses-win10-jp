@@ -19,22 +19,21 @@ static bool in_italic = FALSE;
 
 void PDC_gotoyx(int row, int col)
 {
-#ifdef PDC_WIN10_JP
-    /* for windows 10 jp */
-#else
     COORD coord;
-#endif
 
     PDC_LOG(("PDC_gotoyx() - called: row %d col %d from row %d col %d\n",
              row, col, SP->cursrow, SP->curscol));
 
-#ifdef PDC_WIN10_JP
-    /* for windows 10 jp */
-    PDC_set_console_cursor_position(row, col);
-#else
     coord.X = col;
     coord.Y = row;
 
+#ifdef PDC_WIN10_JP
+    /* for windows 10 jp */
+    COORD disp_size;
+    disp_size.X = SP->cols;
+    disp_size.Y = SP->lines;
+    PDC_set_console_cursor_position(pdc_con_out, coord, disp_size, curscr->_y[row]);
+#else
     SetConsoleCursorPosition(pdc_con_out, coord);
 #endif
 }
@@ -218,7 +217,14 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
         _set_ansi_color(fore, back, attr);
 #ifdef PDC_WIN10_JP
         /* for windows 10 jp */
-        PDC_write_console_w(lineno, x, buffer, len);
+        COORD cur_pos;
+        COORD disp_size;
+        DWORD written;
+        cur_pos.X = x;
+        cur_pos.Y = lineno;
+        disp_size.X = SP->cols;
+        disp_size.Y = SP->lines;
+        PDC_write_console_w(pdc_con_out, buffer, len, &written, cur_pos, disp_size, curscr->_y[lineno]);
 #else
 #ifdef PDC_WIDE
         WriteConsoleW(pdc_con_out, buffer, len, NULL, NULL);
@@ -229,10 +235,11 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
     }
     else
     {
-        CHAR_INFO buffer[512];
 #ifdef PDC_WIN10_JP
         /* for windows 10 jp */
+        WCHAR buffer[512];
 #else
+        CHAR_INFO buffer[512];
         COORD bufSize, bufPos;
         SMALL_RECT sr;
 #endif
@@ -263,13 +270,25 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
             if (blink && blinked_off)
                 ch = ' ';
 
+#ifdef PDC_WIN10_JP
+            /* for windows 10 jp */
+            buffer[j] = ch & A_CHARTEXT;
+#else
             buffer[j].Attributes = mapped_attr;
             buffer[j].Char.UnicodeChar = ch & A_CHARTEXT;
+#endif
         }
 
 #ifdef PDC_WIN10_JP
         /* for windows 10 jp */
-        PDC_write_console_output_w(lineno, x, buffer, len);
+        COORD cur_pos;
+        COORD disp_size;
+        DWORD written;
+        cur_pos.X = x;
+        cur_pos.Y = lineno;
+        disp_size.X = SP->cols;
+        disp_size.Y = SP->lines;
+        PDC_write_console_w_with_attribute(pdc_con_out, buffer, len, &written, mapped_attr, cur_pos, disp_size, curscr->_y[lineno]);
 #else
         bufPos.X = bufPos.Y = 0;
         bufSize.X = len;
