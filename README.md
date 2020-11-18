@@ -153,7 +153,8 @@
     Windows Terminal の場合に、  
     VT エスケープシーケンスによるマウス入力を受け付けられるようにした。  
     (実装の詳細については、[wincon/pdckbd_sub.c][2] を参照)  
-    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
+    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。  
+    (本機能は、PDC_WIN10_JP が define されていないと、有効にならない)
 
 17. マウスクリックイベントの無効化機能を追加  
     `( wincon/pdckbd.c )`  
@@ -304,6 +305,12 @@
         { "command": "unbound", "keys": [ "alt+shift+up" ] },
     ```
 
+16. その他、Windows Terminal の不具合情報 (Windows 10)
+    - IME の入力が重なって表示される。  
+      https://github.com/microsoft/terminal/issues/6192
+    - 絵文字の入力が化けてエコー表示される(アプリへの入力は正常)。  
+      https://github.com/microsoft/terminal/issues/1503
+
 
 ## 環境等
 - OS
@@ -346,9 +353,10 @@
 - 2020-11-2  v3.9-jp0012 VT エスケープシーケンスの処理を修正
 - 2020-11-2  v3.9-jp0013 VT エスケープシーケンスの処理を一部見直し
 - 2020-11-17 v3.9-jp0014 内部処理見直し(pdckbd_sub.c, pdcdisp_sub.c)
+- 2020-11-18 v3.9-jp0015 内部処理修正(pdckbd_sub.c)
 
 
-(2020-11-17)
+(2020-11-18)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c

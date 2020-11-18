@@ -93,6 +93,7 @@ static const struct vt_input vt_input_table[] = {
 /* inner functions */
 static int is_vt_input(PINPUT_RECORD input_rec_ptr);
 static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR uchar, DWORD ctrl);
+static void drop_left_alt_key_state(PINPUT_RECORD input_rec_ptr);
 static BOOL consume_vt_input(HANDLE hin, int input_seq_len);
 static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr, int peek_flag);
 
@@ -122,6 +123,13 @@ static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR u
     input_rec_ptr->Event.KeyEvent.wVirtualScanCode  = vs;
     input_rec_ptr->Event.KeyEvent.uChar.UnicodeChar = uchar;
     input_rec_ptr->Event.KeyEvent.dwControlKeyState = ctrl;
+}
+
+/* drop left alt key state
+   (to avoid unwanted character code conversion on PDCurses) */
+static void drop_left_alt_key_state(PINPUT_RECORD input_rec_ptr)
+{
+    input_rec_ptr->Event.KeyEvent.dwControlKeyState &= ~LEFT_ALT_PRESSED;
 }
 
 /* consume vt escape sequence */
@@ -235,16 +243,19 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
     if (is_vt_input(&input_rec2[0]) &&
         input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x7f) { /* Backspace */
         set_key_event(input_rec_ptr, 0x8, 0xe, 0x8, ctrl_state);
+        drop_left_alt_key_state(input_rec_ptr);
         return TRUE;
     }
     if (is_vt_input(&input_rec2[0]) &&
         input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x8) {  /* Ctrl + Backspace */
         set_key_event(input_rec_ptr, 0x8, 0xe, 0x7f, ctrl_state);
+        drop_left_alt_key_state(input_rec_ptr);
         return TRUE;
     }
     if (is_vt_input(&input_rec2[0]) &&
         input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x1a) { /* Pause */
         set_key_event(input_rec_ptr, 0x13, 0x45, 0, ctrl_state);
+        drop_left_alt_key_state(input_rec_ptr);
         return TRUE;
     }
     if (input_rec2[0].EventType == KEY_EVENT &&
@@ -253,11 +264,13 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
         input_rec2[0].Event.KeyEvent.wVirtualScanCode == 0 &&
         input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0) {    /* Ctrl + Space */
         set_key_event(input_rec_ptr, 0x20, 0x39, 0x20, ctrl_state);
+        drop_left_alt_key_state(input_rec_ptr);
         return TRUE;
     }
     if (is_vt_input(&input_rec2[0]) &&
         input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x9) {  /* Ctrl + Tab */
         set_key_event(input_rec_ptr, 0x9, 0xf, 0x0, ctrl_state);
+        drop_left_alt_key_state(input_rec_ptr);
         return TRUE;
     }
 
@@ -270,8 +283,7 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
             /* vt escape sequence doesn't have modifier key state.
                so, we set the current state here. */
             input_rec_ptr->Event.KeyEvent.dwControlKeyState = ctrl_state;
-            /* left alt key state is dropped for PDCurses */
-            input_rec_ptr->Event.KeyEvent.dwControlKeyState &= ~LEFT_ALT_PRESSED;
+            drop_left_alt_key_state(input_rec_ptr);
         }
     }
 
