@@ -306,7 +306,7 @@
     ```
 
 16. その他、Windows Terminal の不具合情報 (Windows 10)
-    - IME の入力が重なって表示される。  
+    - 日本語入力 (IME) の未確定文字列が、画面上に重なって表示される。  
       https://github.com/microsoft/terminal/issues/6192
     - 絵文字の入力が化けてエコー表示される(アプリへの入力は正常)。  
       https://github.com/microsoft/terminal/issues/1503
@@ -356,7 +356,7 @@
 - 2020-11-18 v3.9-jp0015 内部処理修正(pdckbd_sub.c)
 
 
-(2020-11-18)
+(2020-11-19)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
