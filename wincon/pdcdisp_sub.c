@@ -249,6 +249,9 @@ static int adjust_cur_x(int y, int x, int disp_width, int disp_height, chtype *s
     if (x < 0 || x >= disp_width || y < 0 || y >= disp_height) {
         return x;
     }
+    if (scr_line_buf == NULL) {
+        return x;
+    }
 
     /* adjust cursor-x position */
     new_x = 0;
@@ -379,7 +382,6 @@ BOOL PDC_set_console_cursor_position(HANDLE hout, COORD cur_pos, COORD disp_size
 /* write buffer to console
     limitations:
      - not compatible with Win32 API (WriteConsoleW).
-     - GetLastError() is not supported.
 */
 BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
                          COORD cur_pos, COORD disp_size, chtype *scr_line_buf)
@@ -405,6 +407,7 @@ BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_
     /* check buffer length */
     if (len <= 0) {
         *written_num_ptr = 0;
+        SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
     }
 
@@ -450,7 +453,6 @@ BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_
 /* write buffer to console
     limitations:
      - not compatible with Win32 API (WriteConsoleOutputW).
-     - GetLastError() is not supported.
 */
 BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
                                         WORD attr, COORD cur_pos, COORD disp_size, chtype *scr_line_buf)
@@ -477,6 +479,7 @@ BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, L
     /* check buffer length */
     if (len <= 0) {
         *written_num_ptr = 0;
+        SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
     }
 

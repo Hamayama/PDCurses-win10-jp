@@ -140,6 +140,7 @@ static BOOL consume_vt_input(HANDLE hin, int input_seq_len) {
     /* check arguments */
     if (input_seq_len > MAX_INPUT_REC_LEN) {
         DBG_PRINT("internal error. (consume)\n");
+        SetLastError(ERROR_INTERNAL_ERROR);
         return FALSE;
     }
 
@@ -150,6 +151,7 @@ static BOOL consume_vt_input(HANDLE hin, int input_seq_len) {
     }
     if ((int)read_event_num < input_seq_len) {
         DBG_PRINT("ReadConsoleInputW returned before read. (consume)\n");
+        SetLastError(ERROR_INTERNAL_ERROR);
         return FALSE;
     }
     return TRUE;
@@ -164,7 +166,6 @@ static BOOL consume_vt_input(HANDLE hin, int input_seq_len) {
      - virtual key code and virtual scan code casually become zero.
      - Alt + X key combination input is split into Esc and X key events.
      - mouse coordinates origin is top left of screen (not top left of buffer).
-     - GetLastError() is not supported.
 */
 BOOL PDC_peek_console_input_w(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr)
 {
@@ -224,6 +225,7 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
         if (read_event_num2 < 1) {
             *read_event_num_ptr = 0;
             DBG_PRINT("ReadConsoleInputW returned before read. (input_rec2)\n");
+            SetLastError(ERROR_INTERNAL_ERROR);
             return FALSE;
         }
         /* peek all console input */

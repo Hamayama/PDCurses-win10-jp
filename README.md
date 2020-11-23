@@ -354,9 +354,10 @@
 - 2020-11-2  v3.9-jp0013 VT エスケープシーケンスの処理を一部見直し
 - 2020-11-17 v3.9-jp0014 内部処理見直し(pdckbd_sub.c, pdcdisp_sub.c)
 - 2020-11-18 v3.9-jp0015 内部処理修正(pdckbd_sub.c)
+- 2020-11-23 v3.9-jp0016 内部処理見直し(pdckbd_sub.c, pdcdisp_sub.c)
 
 
-(2020-11-19)
+(2020-11-23)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
