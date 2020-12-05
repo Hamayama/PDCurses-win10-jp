@@ -144,14 +144,39 @@ int doupdate(void)
     else
         clearall = curscr->_clear;
 
-#ifdef PDC_FORCE_ALL_UPDATE
-    /* output all lines */
-    clearall = TRUE;
-
+#ifdef PDC_UPDATE_WHOLE_LINE
     /* disable cursor visibility */
     int vis_bkup = SP->visibility;
     PDC_curs_set(0);
-#endif
+
+    /* update a whole line if changed */
+    for (y = 0; y < SP->lines; y++)
+    {
+        chtype *src = curscr->_y[y];
+        chtype *dest = SP->lastscr->_y[y];
+
+        /* check if changes exist */
+        if (clearall ||
+            (curscr->_firstch[y] != _NO_CHANGE &&
+             memcmp(src, dest, COLS * sizeof(chtype)))) {
+
+            /* update the screen, and SP->lastscr */
+            PDC_transform_line(y, 0, COLS, src);
+            memcpy(dest, src, COLS * sizeof(chtype));
+        }
+
+        curscr->_firstch[y] = _NO_CHANGE;
+        curscr->_lastch[y] = _NO_CHANGE;
+    }
+    curscr->_clear = FALSE;
+
+    /* set cursor position */
+    PDC_gotoyx(curscr->_cury, curscr->_curx);
+
+    /* restore cursor visibility */
+    PDC_curs_set(vis_bkup);
+
+#else
 
     for (y = 0; y < SP->lines; y++)
     {
@@ -218,13 +243,6 @@ int doupdate(void)
 
     curscr->_clear = FALSE;
 
-#ifdef PDC_FORCE_ALL_UPDATE
-    /* set cursor position */
-    PDC_gotoyx(curscr->_cury, curscr->_curx);
-
-    /* enable cursor visibility */
-    PDC_curs_set(vis_bkup);
-#else
     if (SP->visibility)
         PDC_gotoyx(curscr->_cury, curscr->_curx);
 #endif

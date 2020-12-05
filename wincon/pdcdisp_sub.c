@@ -391,7 +391,7 @@ BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_
     int disp_width  = disp_size.X;
     int disp_height = disp_size.Y;
     int i;
-    int len1;
+    int len1, len2;
     int x1, x2;
     WCHAR space[4] = {0x0020, 0x0020, 0, 0};
     WCHAR *buffer1;
@@ -402,22 +402,22 @@ BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_
     x1 = adjust_cur_x(y, x, disp_width, disp_height, scr_line_buf);
 
     /* adjust buffer and length */
-    len = adjust_buf_and_len(y, x1, buffer, len, disp_width, disp_height);
+    len1 = adjust_buf_and_len(y, x1, buffer, len, disp_width, disp_height);
 
     /* check buffer length */
-    if (len <= 0) {
+    if (len1 <= 0) {
         *written_num_ptr = 0;
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
     }
 
     /* write buffer to console */
-    len1 = 0;
+    len2 = 0;
     x2 = x1;
     buffer1 = buffer;
-    for (i = 0; i < (int)len; i++) {
+    for (i = 0; i < len1; i++) {
         ch = buffer[i];
-        len1++;
+        len2++;
         x2++;
         /* surrogate pair character */
         if (is_surrogate(ch)) {
@@ -434,19 +434,19 @@ BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_
             goto_yx(hout, y, x2 - 2);
             WriteConsoleW(hout, space, 2, &written, NULL);
             goto_yx(hout, y, x1);
-            WriteConsoleW(hout, buffer1, len1, &written, NULL);
-            buffer1 += len1;
-            len1 = 0;
+            WriteConsoleW(hout, buffer1, len2, &written, NULL);
+            buffer1 += len2;
+            len2 = 0;
             x1 = x2;
         }
     }
-    if (len1 > 0) {
+    if (len2 > 0) {
         goto_yx(hout, y, x1);
-        WriteConsoleW(hout, buffer1, len1, &written, NULL);
+        WriteConsoleW(hout, buffer1, len2, &written, NULL);
     }
 
     /* set return value */
-    *written_num_ptr = len;
+    *written_num_ptr = len1;
     return TRUE;
 }
 
@@ -462,7 +462,7 @@ BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, L
     int disp_width  = disp_size.X;
     int disp_height = disp_size.Y;
     int i;
-    int len1;
+    int len1, len2;
     int x1, x2;
     WCHAR space[4] = {0x0020, 0x0020, 0, 0};
     WCHAR *buffer1;
@@ -474,28 +474,28 @@ BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, L
     x1 = adjust_cur_x(y, x, disp_width, disp_height, scr_line_buf);
 
     /* adjust buffer and length */
-    len = adjust_buf_and_len(y, x1, buffer, len, disp_width, disp_height);
+    len1 = adjust_buf_and_len(y, x1, buffer, len, disp_width, disp_height);
 
     /* check buffer length */
-    if (len <= 0) {
+    if (len1 <= 0) {
         *written_num_ptr = 0;
         SetLastError(ERROR_INVALID_PARAMETER);
         return FALSE;
     }
 
     /* write attribute to console */
-    len1 = adjust_cur_x(y, x + len, disp_width, disp_height, scr_line_buf) - x1;
+    len2 = adjust_cur_x(y, x + len1, disp_width, disp_height, scr_line_buf) - x1;
     coord.X = x1;
     coord.Y = y;
-    FillConsoleOutputAttribute(hout, attr, len1, coord, &written);
+    FillConsoleOutputAttribute(hout, attr, len2, coord, &written);
 
     /* write buffer to console */
-    len1 = 0;
+    len2 = 0;
     x2 = x1;
     buffer1 = buffer;
-    for (i = 0; i < (int)len; i++) {
+    for (i = 0; i < len1; i++) {
         ch = buffer[i];
-        len1++;
+        len2++;
         x2++;
         /* surrogate pair character */
         if (is_surrogate(ch)) {
@@ -514,20 +514,20 @@ BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, L
             WriteConsoleOutputCharacterW(hout, space, 2, coord, &written);
             coord.X = x1;
             coord.Y = y;
-            WriteConsoleOutputCharacterW(hout, buffer1, len1, coord, &written);
-            buffer1 += len1;
-            len1 = 0;
+            WriteConsoleOutputCharacterW(hout, buffer1, len2, coord, &written);
+            buffer1 += len2;
+            len2 = 0;
             x1 = x2;
         }
     }
-    if (len1 > 0) {
+    if (len2 > 0) {
         coord.X = x1;
         coord.Y = y;
-        WriteConsoleOutputCharacterW(hout, buffer1, len1, coord, &written);
+        WriteConsoleOutputCharacterW(hout, buffer1, len2, coord, &written);
     }
 
     /* set return value */
-    *written_num_ptr = len;
+    *written_num_ptr = len1;
     return TRUE;
 }
 #endif

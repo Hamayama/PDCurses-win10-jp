@@ -508,19 +508,26 @@ int PDC_scr_open(void)
 #ifdef PDC_WIN10_JP
     /* for windows 10 jp */
 
-    /* set console mode (input/output) */
-    pdc_con_in_mode  = 0x0088 | pdc_quick_edit;
-    pdc_con_out_mode = 0x0015;     /* LVB + VT + PROCESSED_OUTPUT */
-    SetConsoleMode(pdc_con_in,  pdc_con_in_mode);
-    if (!SetConsoleMode(pdc_con_out, pdc_con_out_mode)) {
+    /* set console mode (input) */
+    pdc_con_in_mode = 0x0088 | pdc_quick_edit;
+    SetConsoleMode(pdc_con_in, pdc_con_in_mode);
+
+    /* set console mode (output) */
+    pdc_con_out_mode = 0;
+    if (SetConsoleMode(pdc_con_out, 0x0015)) {
+        pdc_con_out_mode = 0x0015; /* LVB + VT + PROCESSED_OUTPUT */
+    } else if (SetConsoleMode(pdc_con_out, 0x0010)) {
         pdc_con_out_mode = 0x0010; /* LVB */
-        SetConsoleMode(pdc_con_out, pdc_con_out_mode);
+    } else {
+        SetConsoleMode(pdc_con_out, 0);
     }
 #endif
 
 #ifdef PDC_WIN10_JP
     /* for windows 10 jp */
-    SP->termattrs |= A_UNDERLINE | A_LEFT | A_RIGHT;
+    if (pdc_con_out_mode & 0x0010) {
+        SP->termattrs |= A_UNDERLINE | A_LEFT | A_RIGHT;
+    }
 #else
     /* ENABLE_LVB_GRID_WORLDWIDE */
     result = SetConsoleMode(pdc_con_out, 0x0010);

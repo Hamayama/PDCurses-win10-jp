@@ -47,6 +47,9 @@
    毎回、画面全体を描画するように変更した。  
    → その後、本機能は、シンボル PDC_FORCE_ALL_UPDATE を define することで、  
    有効になるようにした。  
+   → その後、本機能は、行単位のキャッシュを有効にするように変更した。  
+   (行に変更があれば、行全体を描画する。行に変更がなければ、その行は描画しない)  
+   これに伴い、シンボル名も PDC_FORCE_ALL_UPDATE から PDC_UPDATE_WHOLE_LINE に変更した。  
    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
 4. wincon の Makefile の変更  
@@ -165,6 +168,10 @@
     押し下げイベントが2回発生して、  
     マウスクリックイベントの判定を誤るケースが出たため、追加した。  
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
+
+18. Cppcheck のチェック結果の対応  
+    `( pdcurses/addstr.c  pdcurses/insstr.c )`  
+    配列アクセスよりも前に、index をチェックするようにした。
 
 
 ## インストール方法
@@ -321,6 +328,7 @@
   - MSYS2/MinGW-w64 (64bit) (gcc version 9.2.0 (Rev2, Built by MSYS2 project)) (Windows 8.1)
   - winpty-fixes 0.4.4-dev ( https://github.com/Hamayama/winpty-fixes ) (Windows 10)
   - winpty 0.4.3 (Windows 8.1)
+  - Cppcheck 2.2
 - 端末
   - コマンドプロンプト (cmd.exe)
   - ConEmu 201011 (Windows 10)
@@ -355,9 +363,12 @@
 - 2020-11-17 v3.9-jp0014 内部処理見直し(pdckbd_sub.c, pdcdisp_sub.c)
 - 2020-11-18 v3.9-jp0015 内部処理修正(pdckbd_sub.c)
 - 2020-11-23 v3.9-jp0016 内部処理見直し(pdckbd_sub.c, pdcdisp_sub.c)
+- 2020-12-5  v3.9-jp0017 内部処理見直し(pdcdisp_sub.c, pdcscrn.c, refresh.c)  
+  シンボル名変更 ( PDC_FORCE_ALL_UPDATE → PDC_UPDATE_WHOLE_LINE )  
+  Cppcheck のチェック結果の対応(addstr.c, insstr.c)
 
 
-(2020-11-23)
+(2020-12-5)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
