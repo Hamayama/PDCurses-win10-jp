@@ -144,26 +144,23 @@ int doupdate(void)
     else
         clearall = curscr->_clear;
 
-#ifdef PDC_UPDATE_WHOLE_LINE
+#ifdef PDC_FORCE_UPDATE
+    /* suppress unused variable warning */
+    (void)clearall;
+
     /* disable cursor visibility */
     int vis_bkup = SP->visibility;
     PDC_curs_set(0);
 
-    /* update a whole line if changed */
+    /* output all lines */
     for (y = 0; y < SP->lines; y++)
     {
         chtype *src = curscr->_y[y];
         chtype *dest = SP->lastscr->_y[y];
 
-        /* check if changes exist */
-        if (clearall ||
-            (curscr->_firstch[y] != _NO_CHANGE &&
-             memcmp(src, dest, COLS * sizeof(chtype)))) {
-
-            /* update the screen, and SP->lastscr */
-            PDC_transform_line(y, 0, COLS, src);
-            memcpy(dest, src, COLS * sizeof(chtype));
-        }
+        /* update the screen, and SP->lastscr */
+        PDC_transform_line(y, 0, COLS, src);
+        memcpy(dest, src, COLS * sizeof(chtype));
 
         curscr->_firstch[y] = _NO_CHANGE;
         curscr->_lastch[y] = _NO_CHANGE;

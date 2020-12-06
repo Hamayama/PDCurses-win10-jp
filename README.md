@@ -50,6 +50,9 @@
    → その後、本機能は、行単位のキャッシュを有効にするように変更した。  
    (行に変更があれば、行全体を描画する。行に変更がなければ、その行は描画しない)  
    これに伴い、シンボル名も PDC_FORCE_ALL_UPDATE から PDC_UPDATE_WHOLE_LINE に変更した。  
+   → その後、Windows Terminal の画面リサイズで、背景色が更新されない不具合が発生したため、  
+   行単位のキャッシュは無効に戻した。  
+   これに伴い、シンボル名も PDC_UPDATE_WHOLE_LINE から PDC_FORCE_UPDATE に変更した。  
    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
 4. wincon の Makefile の変更  
@@ -372,6 +375,8 @@
   Cppcheck のチェック結果の対応(addstr.c, insstr.c)
 - 2020-12-6  v3.9-jp0018 内部処理見直し(pdckbd.c, pdcscrn.c)  
   シンボル PDC_RIGHT_MARGIN を削除
+- 2020-12-6  v3.9-jp0019 内部処理見直し(refresh.c)  
+  シンボル名変更 ( PDC_UPDATE_WHOLE_LINE → PDC_FORCE_UPDATE )
 
 
 (2020-12-6)
