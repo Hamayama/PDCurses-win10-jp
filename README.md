@@ -45,14 +45,8 @@
    もともと、refresh (doupdate) 時は、差分だけを描画する処理になっていた。  
    しかし、文字幅の変化による更新もれが発生したため、  
    毎回、画面全体を描画するように変更した。  
-   → その後、本機能は、シンボル PDC_FORCE_ALL_UPDATE を define することで、  
+   → その後、本機能は、シンボル PDC_FORCE_UPDATE を define することで、  
    有効になるようにした。  
-   → その後、本機能は、行単位のキャッシュを有効にするように変更した。  
-   (行に変更があれば、行全体を描画する。行に変更がなければ、その行は描画しない)  
-   これに伴い、シンボル名も PDC_FORCE_ALL_UPDATE から PDC_UPDATE_WHOLE_LINE に変更した。  
-   → その後、Windows Terminal の画面リサイズで、背景色が更新されない不具合が発生したため、  
-   行単位のキャッシュは無効に戻した。  
-   これに伴い、シンボル名も PDC_UPDATE_WHOLE_LINE から PDC_FORCE_UPDATE に変更した。  
    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
 4. wincon の Makefile の変更  
@@ -107,7 +101,7 @@
    `( wincon/pdcsetsc.c )`  
    これは、winpty の制約と思われる (16 色しか表示できない)。  
    (Windows 8.1 では、VT エスケープシーケンスに非対応のため、  
-   結果的に 16 色設定 ( COLORS = 16 ) になっていた)
+   結果的に 16 色設定 ( COLORS = 16 ) となっており、問題がなかった)
 
 9. 画面のリサイズイベントの発生条件を緩和  
    `( wincon/pdckbd.c )`  
@@ -140,7 +134,8 @@
     `( wincon/pdcscrn.c )`  
     シンボル PDC_CURSOR_HOME_ON_RESIZE を define することで、  
     resize_term() の実行時に、カーソルをホームポジション (0,0) に移動するようにした。  
-    これによって、画面リサイズ時に Windows Console が異常終了する現象を、回避できるもよう。  
+    これによって、Windows 10 で、画面リサイズ時に Windows Console が異常終了する現象を  
+    回避できるようになった。  
     (参考URL：https://github.com/microsoft/terminal/issues/1976 )  
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
 
@@ -376,11 +371,14 @@
 - 2020-11-18 v3.9-jp0015 内部処理修正(pdckbd_sub.c)
 - 2020-11-23 v3.9-jp0016 内部処理見直し(pdckbd_sub.c, pdcdisp_sub.c)
 - 2020-12-5  v3.9-jp0017 内部処理見直し(pdcdisp_sub.c, pdcscrn.c, refresh.c)  
+  (行単位のキャッシュを有効化)  
   シンボル名変更 ( PDC_FORCE_ALL_UPDATE → PDC_UPDATE_WHOLE_LINE )  
   Cppcheck のチェック結果の対応(addstr.c, insstr.c)
 - 2020-12-6  v3.9-jp0018 内部処理見直し(pdckbd.c, pdcscrn.c)  
+  (画面の右端に余白を設ける機能を削除した)  
   シンボル PDC_RIGHT_MARGIN を削除
 - 2020-12-6  v3.9-jp0019 内部処理見直し(refresh.c)  
+  (Windows Terminal のリサイズで、背景色が更新されなかったため、行単位のキャッシュをやめた)  
   シンボル名変更 ( PDC_UPDATE_WHOLE_LINE → PDC_FORCE_UPDATE )
 
 
