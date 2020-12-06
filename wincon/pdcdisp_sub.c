@@ -291,18 +291,6 @@ static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len, int disp_wid
         return 0;
     }
 
-    /* don't write bottom right corner of windows console */
-#ifdef PDC_RIGHT_MARGIN
-    /* consider right margin */
-    if (y == disp_height - 1 && PDC_RIGHT_MARGIN == 0) {
-        disp_width--;
-    }
-#else
-    if (y == disp_height - 1) {
-        disp_width--;
-    }
-#endif
-
     /* adjust cursor-x position */
     /* new_x = adjust_cur_x(y, x, disp_width, disp_height, scr_line_buf); */
     new_x = x;

@@ -431,6 +431,10 @@ int PDC_scr_open(void)
     /* Windows Terminal (windows 10) detection */
     str = getenv("WT_SESSION");
     pdc_winterm = !!str;
+    if (pdc_winterm) {
+        /* use vt escape sequence to output colors and attributes */
+        pdc_ansi = TRUE;
+    }
 
     /* set width of ambiguous width characters */
     str = getenv("PDC_AMBIGUOUS_WIDTH");
@@ -598,15 +602,7 @@ int PDC_resize_screen(int nlines, int ncols)
     if (!prog_resize)
     {
         nlines = PDC_get_rows();
-
-#ifdef PDC_RIGHT_MARGIN
-        /* don't consider right margin */
-        CONSOLE_SCREEN_BUFFER_INFO scr;
-        GetConsoleScreenBufferInfo(pdc_con_out, &scr);
-        ncols = scr.srWindow.Right - scr.srWindow.Left + 1;
-#else
         ncols = PDC_get_columns();
-#endif
     }
 
     if (nlines < 2 || ncols < 2)

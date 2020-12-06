@@ -90,18 +90,21 @@
    どう設定してもうまくいかなかった (カーソルの表示位置がずれたりする) 。  
    結局、これらの環境変数は、現状、設定する意味がない。
 
-7. 画面の右端に余白を設ける機能を追加  
+7. ~~画面の右端に余白を設ける機能を追加  
    `( wincon/pdcwin.h  wincon/pdcgetsc.c )`  
    シンボル PDC_RIGHT_MARGIN を define することで、  
    画面の右端に余白を設定できるようにした (0 か 1 を指定する) 。  
    これは、Windows Console API (WriteConsoleW) で画面の右端に文字を表示すると、  
    自動改行等により不具合が発生するようにみえたため、追加した。  
    (ただ、デバッグ中の勘違いだったのかもしれない。。。)  
-   現状、Makefile では、Windows 10 の場合のみ、1 を指定するようにしている。
+   現状、Makefile では、Windows 10 の場合のみ、1 を指定するようにしている。~~  
+   → 本機能は削除した
 
 8. mintty (winpty が必要) のときは、色数を 16 色に制限する処理を追加  
    `( wincon/pdcsetsc.c )`  
-   これは、winpty の制約と思われる (16 色しか表示できない)。
+   これは、winpty の制約と思われる (16 色しか表示できない)。  
+   (Windows 8.1 では、VT エスケープシーケンスに非対応のため、  
+   結果的に 16 色設定 ( COLORS = 16 ) になっていた)
 
 9. 画面のリサイズイベントの発生条件を緩和  
    `( wincon/pdckbd.c )`  
@@ -127,7 +130,8 @@
     (static 変数の初期値は 0 なので、問題はないと思われるが、  
     コンパイル時に警告が出ていたため、追加した)  
     また、配列変数 kptab[] について、要素数 256 まで初期化するようにした。  
-    (MinGW-w64 のヘッダーファイルを見ると、VK_OEM_CLEAR (0xFE) までは 定義されていたため)
+    (MinGW-w64 のヘッダーファイルを見ると、VK_OEM_CLEAR (0xFE) までは 定義されていたため)  
+    また、配列変数 kptab[] の範囲外にアクセスしないように、チェック処理を追加した。
 
 13. 画面リサイズ時に、カーソルをホームポジション (0,0) に移動  
     `( wincon/pdcscrn.c )`  
@@ -335,7 +339,7 @@
   - ConEmu 191012 (Windows 8.1)
   - mintty 3.4.1 (winpty が必要) (Windows 10)
   - mintty 3.1.4 (winpty が必要) (Windows 8.1)
-  - Windows Terminal 1.4.3141.0 (Windows 10)
+  - Windows Terminal 1.4.3243.0 (Windows 10)
 - ライセンス
   - オリジナルと同様とします
 
@@ -366,9 +370,11 @@
 - 2020-12-5  v3.9-jp0017 内部処理見直し(pdcdisp_sub.c, pdcscrn.c, refresh.c)  
   シンボル名変更 ( PDC_FORCE_ALL_UPDATE → PDC_UPDATE_WHOLE_LINE )  
   Cppcheck のチェック結果の対応(addstr.c, insstr.c)
+- 2020-12-6  v3.9-jp0018 内部処理見直し(pdckbd.c, pdcscrn.c)  
+  シンボル PDC_RIGHT_MARGIN を削除
 
 
-(2020-12-5)
+(2020-12-6)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c

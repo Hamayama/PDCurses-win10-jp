@@ -21,6 +21,8 @@ static int save_press = 0;
  *    These values are for strict IBM keyboard compatibles only         *
  ************************************************************************/
 
+#define MAX_KPTAB 256
+
 typedef struct
 {
     unsigned short normal;
@@ -30,7 +32,7 @@ typedef struct
     unsigned short extended;
 } KPTAB;
 
-static KPTAB kptab[] =
+static KPTAB kptab[MAX_KPTAB] =
 {
    {0,          0,         0,           0,          0   }, /* 0  */
    {0,          0,         0,           0,          0   }, /* 1   VK_LBUTTON */
@@ -361,7 +363,7 @@ static int _process_key_event(void)
     SP->key_code = TRUE;
 
     /* check vk range */
-    if (vk > 255) {
+    if (vk >= MAX_KPTAB) {
         return -1;
     }
 
