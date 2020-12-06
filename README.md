@@ -324,6 +324,11 @@
       https://github.com/microsoft/terminal/issues/6192
     - 絵文字の入力が化けてエコー表示される(アプリへの入力は正常)。  
       https://github.com/microsoft/terminal/issues/1503
+    - リサイズしてから、アプリ (vim 等) を終了すると、ゴミが表示される。  
+      その状態で、再度、アプリを起動すると、表示が崩れる。  
+      (古い画面サイズが、アプリに通知されているもよう)  
+      https://github.com/microsoft/terminal/issues/7466  
+      https://github.com/microsoft/terminal/issues/3088
 
 
 ## 環境等
