@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; gen_eaw_cdata.scm
-;; 2020-10-9 v1.01
+;; 2020-12-8 v1.02
 ;;
 ;; ＜内容＞
 ;;   Gauche を使用して、C言語用の文字幅データを生成するためのツールです。
@@ -25,27 +25,28 @@
 (define east-asian-width-file "EastAsianWidth.txt")
 
 ;; emoji-data ファイル     (#f なら読み込まない)
-(define emoji-data-file  "emoji-data.txt")
+(define emoji-data-file       "emoji-data.txt")
 
 ;; 結果データ ファイル     (#f なら書き出さない)
-(define result-data-file "wide-data.txt")
+(define result-data-file      "wide-data.txt")
 
 ;; ワイド文字セレクタ設定  (EastAsianWidth の A F H N Na W から選択)
-(define wide-type-selector '(F W))
+(define wide-type-selector    '(F W))
 
 ;; ワイド文字範囲リストの追加設定 (#f なら追加しない)
 ;;   (UTF-16 でサロゲートペアになる文字は、すべてワイド文字と判定しないと、
 ;;    Windows コンソールの1行に収まらない (1文字で2セル使用するため))
-(define wide-range-list-plus '((#x10000 . #xeffff)))
+(define wide-range-list-plus  '((#x10000 . #xeffff)))
 
 ;; 結果データのインデント設定
-(define result-data-indent 8)
+(define result-data-indent    8)
 
 
 ;; 範囲の構造体 (実体はコンスセル)
 ;;   start  範囲の開始点(整数)
 ;;   end    範囲の終了点(整数)
 (define (make-range start end) (cons start end))
+(define (copy-range r) (list-copy r))
 (define range-start (getter-with-setter (lambda (r)   (car r))
                                         (lambda (r v) (set-car! r v))))
 (define range-end   (getter-with-setter (lambda (r)   (cdr r))
@@ -64,18 +65,22 @@
   (define result-range-list '())
   (define r-last #f)
   (for-each
-   (lambda (r)
+   (lambda (r-now)
+     ;; 条件を満たせば、最後の範囲にマージする
      (cond
       ((and r-last
-            (<= (range-start r)      (+ (range-end r-last) 1))
-            (<= (range-start r-last) (+ (range-end r)      1)))
+            (<= (range-start r-now)  (+ (range-end r-last) 1))
+            (<= (range-start r-last) (+ (range-end r-now)  1)))
+       ;; マージ処理
        (set! (range-start r-last) (min (range-start r-last)
-                                       (range-start r)))
+                                       (range-start r-now)))
        (set! (range-end   r-last) (max (range-end r-last)
-                                       (range-end r))))
+                                       (range-end r-now))))
       (else
-       (push! result-range-list r)
-       (set! r-last r))))
+       ;; r-last を変更可能(mutable)とするため、copy-range によるコピーが必要
+       (set! r-last (copy-range r-now))
+       (push! result-range-list r-last)))
+     )
    range-list)
   (reverse result-range-list))
 
@@ -105,18 +110,20 @@
        (else
         (set! r-now r2)
         (set! rest2 (cdr rest2))))
-      ;; 最後の範囲にマージする
+      ;; 条件を満たせば、最後の範囲にマージする
       (cond
        ((and r-last
              (<= (range-start r-now)  (+ (range-end r-last) 1))
              (<= (range-start r-last) (+ (range-end r-now)  1)))
+        ;; マージ処理
         (set! (range-start r-last) (min (range-start r-last)
                                         (range-start r-now)))
         (set! (range-end   r-last) (max (range-end r-last)
                                         (range-end r-now))))
        (else
-        (push! result-range-list r-now)
-        (set! r-last r-now)))
+        ;; r-last を変更可能(mutable)とするため、copy-range によるコピーが必要
+        (set! r-last (copy-range r-now))
+        (push! result-range-list r-last)))
       ;; リストの残りをチェック
       (if (and (null? rest1) (null? rest2))
         (reverse result-range-list)
@@ -143,8 +150,8 @@
    (lambda (line)
      (rxmatch-case line
        (#/^(\w+)\.\.(\w+)\s*;\s*(\w+)/ (#f start end type)
-        (range-list-push! start end type))
-       (#/^(\w+)\s*;\s*(\w+)/ (#f start type)
+        (range-list-push! start end   type))
+       (#/^(\w+)\s*;\s*(\w+)/          (#f start type)
         (range-list-push! start start type))))
    (generator->lseq read-line))
   (reverse result-range-list))
@@ -165,8 +172,8 @@
    (lambda (line)
      (rxmatch-case line
        (#/^(\w+)\.\.(\w+)\s*;\s*(\w+)/ (#f start end type)
-        (range-list-push! start end type))
-       (#/^(\w+)\s*;\s*(\w+)/ (#f start type)
+        (range-list-push! start end   type))
+       (#/^(\w+)\s*;\s*(\w+)/          (#f start type)
         (range-list-push! start start type))))
    (generator->lseq read-line))
   (reverse result-range-list))
@@ -210,8 +217,7 @@
       (set! result-range-list (merge-range-list result-range-list range-list))))
   ;; ワイド文字範囲リストの追加設定をマージする
   (when wide-range-list-plus
-    (let ((range-list '()))
-      (set! result-range-list (merge-range-list result-range-list wide-range-list-plus))))
+    (set! result-range-list (merge-range-list result-range-list wide-range-list-plus)))
   ;; 結果データの書き出し
   (when result-data-file
     (with-output-to-file result-data-file
