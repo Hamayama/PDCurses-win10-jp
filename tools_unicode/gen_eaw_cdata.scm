@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; gen_eaw_cdata.scm
-;; 2020-12-8 v1.03
+;; 2020-12-10 v1.04
 ;;
 ;; ＜内容＞
 ;;   Gauche を使用して、C言語用の文字幅データを生成するためのツールです。
@@ -46,7 +46,6 @@
 ;;   start  範囲の開始点(整数)
 ;;   end    範囲の終了点(整数)
 (define (make-range start end) (cons start end))
-(define (copy-range r) (list-copy r))
 (define range-start (getter-with-setter (lambda (r)   (car r))
                                         (lambda (r v) (set-car! r v))))
 (define range-end   (getter-with-setter (lambda (r)   (cdr r))
@@ -63,19 +62,18 @@
 ;;   ・範囲のリストは、開始点でソート済みであること
 (define (compress-range-list range-list)
   (define result-range-list '())
+  (define r-last #f)
   (for-each
    (lambda (r-now)
      ;; 条件を満たせば、最後の範囲にマージする
-     (let ((r-last (if (null? result-range-list)
-                     #f
-                     (car result-range-list))))
-       (if (and r-last
-                (<= (range-start r-now)  (+ (range-end r-last) 1))
-                (<= (range-start r-last) (+ (range-end r-now)  1)))
-         (set-car! result-range-list
-                   (make-range (min (range-start r-now) (range-start r-last))
-                               (max (range-end   r-now) (range-end   r-last))))
-         (push! result-range-list r-now))))
+     (set! r-last (list-ref result-range-list 0 #f))
+     (if (and r-last
+              (<= (range-start r-now)  (+ (range-end r-last) 1))
+              (<= (range-start r-last) (+ (range-end r-now)  1)))
+       (set-car! result-range-list
+                 (make-range (min (range-start r-now) (range-start r-last))
+                             (max (range-end   r-now) (range-end   r-last))))
+       (push! result-range-list r-now)))
    range-list)
   (reverse result-range-list))
 
@@ -85,12 +83,13 @@
 ;;   ・範囲のリスト1と2は、開始点でソート済みであること
 (define (merge-range-list range-list-1 range-list-2)
   (define result-range-list '())
+  (define r-now  #f)
+  (define r-last #f)
   (cond
    ((null? range-list-1) range-list-2)
    ((null? range-list-2) range-list-1)
    (else
-    (let loop ((r-now #f)
-               (r1    (car range-list-1))
+    (let loop ((r1    (car range-list-1))
                (r2    (car range-list-2))
                (rest1 range-list-1)
                (rest2 range-list-2))
@@ -105,21 +104,18 @@
         (set! r-now r2)
         (set! rest2 (cdr rest2))))
       ;; 条件を満たせば、最後の範囲にマージする
-      (let ((r-last (if (null? result-range-list)
-                      #f
-                      (car result-range-list))))
-        (if (and r-last
-                 (<= (range-start r-now)  (+ (range-end r-last) 1))
-                 (<= (range-start r-last) (+ (range-end r-now)  1)))
-          (set-car! result-range-list
-                    (make-range (min (range-start r-now) (range-start r-last))
-                                (max (range-end   r-now) (range-end   r-last))))
-          (push! result-range-list r-now)))
+      (set! r-last (list-ref result-range-list 0 #f))
+      (if (and r-last
+               (<= (range-start r-now)  (+ (range-end r-last) 1))
+               (<= (range-start r-last) (+ (range-end r-now)  1)))
+        (set-car! result-range-list
+                  (make-range (min (range-start r-now) (range-start r-last))
+                              (max (range-end   r-now) (range-end   r-last))))
+        (push! result-range-list r-now))
       ;; リストの残りをチェック
       (if (and (null? rest1) (null? rest2))
         (reverse result-range-list)
-        (loop #f
-              (if (null? rest1) #f (car rest1))
+        (loop (if (null? rest1) #f (car rest1))
               (if (null? rest2) #f (car rest2))
               rest1
               rest2))))))
