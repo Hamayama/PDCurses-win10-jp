@@ -338,7 +338,7 @@
   - Cppcheck 2.2
 - 端末
   - コマンドプロンプト (cmd.exe)
-  - ConEmu 201011 (Windows 10)
+  - ConEmu 201124 (Windows 10)
   - ConEmu 191012 (Windows 8.1)
   - mintty 3.4.1 (winpty が必要) (Windows 10)
   - mintty 3.1.4 (winpty が必要) (Windows 8.1)
@@ -380,9 +380,11 @@
 - 2020-12-6  v3.9-jp0019 内部処理見直し(refresh.c)  
   (Windows Terminal のリサイズで、背景色が更新されなかったため、行単位のキャッシュをやめた)  
   シンボル名変更 ( PDC_UPDATE_WHOLE_LINE → PDC_FORCE_UPDATE )
+- 2020-12-10 v3.9-jp0020 内部処理見直し(pdcdisp_sub.c)  
+  (関数の、ポインタを取る引数をconstにした)
 
 
-(2020-12-6)
+(2020-12-10)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c

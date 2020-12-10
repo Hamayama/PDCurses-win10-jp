@@ -16,16 +16,16 @@ static int is_surrogate(int ch);
 static int is_wide(int ch);
 static int is_ambwidth(int ch);
 static int is_emoji(int ch);
-static int adjust_cur_x(int y, int x, int disp_width, int disp_height, chtype *scr_line_buf);
+static int adjust_cur_x(int y, int x, int disp_width, int disp_height, const chtype *scr_line_buf);
 static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len, int disp_width, int disp_height);
 static BOOL goto_yx(HANDLE hout, int y, int x);
 
 /* api functions */
-BOOL PDC_set_console_cursor_position(HANDLE hout, COORD cur_pos, COORD disp_size, chtype *scr_line_buf);
+BOOL PDC_set_console_cursor_position(HANDLE hout, COORD cur_pos, COORD disp_size, const chtype *scr_line_buf);
 BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
-                         COORD cur_pos, COORD disp_size, chtype *scr_line_buf);
+                         COORD cur_pos, COORD disp_size, const chtype *scr_line_buf);
 BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
-                                        WORD attr, COORD cur_pos, COORD disp_size, chtype *scr_line_buf);
+                                        WORD attr, COORD cur_pos, COORD disp_size, const chtype *scr_line_buf);
 
 /* search a character from interval table */
 static int search_table(int ch, const struct interval *table, int size)
@@ -239,7 +239,7 @@ static int is_emoji(int ch)
 }
 
 /* adjust cursor-x position */
-static int adjust_cur_x(int y, int x, int disp_width, int disp_height, chtype *scr_line_buf)
+static int adjust_cur_x(int y, int x, int disp_width, int disp_height, const chtype *scr_line_buf)
 {
     int i;
     int new_x;
@@ -277,8 +277,11 @@ static int adjust_cur_x(int y, int x, int disp_width, int disp_height, chtype *s
     return new_x;
 }
 
-/* adjust buffer and length */
-/* (the part of string that exceeds display width is dropped) */
+/* adjust buffer and length
+    limitations:
+     - the part of string that exceeds display width is dropped.
+     - the argument 'buffer' might be changed.
+*/
 static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len, int disp_width, int disp_height)
 {
     int i, j;
@@ -358,7 +361,7 @@ static BOOL goto_yx(HANDLE hout, int y, int x)
     limitations:
      - not compatible with Win32 API (SetConsoleCursorPosition).
 */
-BOOL PDC_set_console_cursor_position(HANDLE hout, COORD cur_pos, COORD disp_size, chtype *scr_line_buf)
+BOOL PDC_set_console_cursor_position(HANDLE hout, COORD cur_pos, COORD disp_size, const chtype *scr_line_buf)
 {
     int x = cur_pos.X;
     int y = cur_pos.Y;
@@ -370,9 +373,10 @@ BOOL PDC_set_console_cursor_position(HANDLE hout, COORD cur_pos, COORD disp_size
 /* write buffer to console
     limitations:
      - not compatible with Win32 API (WriteConsoleW).
+     - the argument 'buffer' might be changed.
 */
 BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
-                         COORD cur_pos, COORD disp_size, chtype *scr_line_buf)
+                         COORD cur_pos, COORD disp_size, const chtype *scr_line_buf)
 {
     int x = cur_pos.X;
     int y = cur_pos.Y;
@@ -441,9 +445,10 @@ BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_
 /* write buffer to console
     limitations:
      - not compatible with Win32 API (WriteConsoleOutputW).
+     - the argument 'buffer' might be changed.
 */
 BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
-                                        WORD attr, COORD cur_pos, COORD disp_size, chtype *scr_line_buf)
+                                        WORD attr, COORD cur_pos, COORD disp_size, const chtype *scr_line_buf)
 {
     int x = cur_pos.X;
     int y = cur_pos.Y;
