@@ -385,7 +385,7 @@ BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_
     int i;
     int len1, len2;
     int x1, x2;
-    WCHAR space[4] = {0x0020, 0x0020, 0, 0};
+    const WCHAR space[4] = {0x0020, 0x0020, 0, 0};
     WCHAR *buffer1;
     int ch;
     DWORD written;
@@ -457,7 +457,7 @@ BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, L
     int i;
     int len1, len2;
     int x1, x2;
-    WCHAR space[4] = {0x0020, 0x0020, 0, 0};
+    const WCHAR space[4] = {0x0020, 0x0020, 0, 0};
     WCHAR *buffer1;
     int ch;
     COORD coord;

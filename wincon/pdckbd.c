@@ -32,7 +32,7 @@ typedef struct
     unsigned short extended;
 } KPTAB;
 
-static KPTAB kptab[MAX_KPTAB] =
+static const KPTAB kptab[MAX_KPTAB] =
 {
    {0,          0,         0,           0,          0   }, /* 0  */
    {0,          0,         0,           0,          0   }, /* 1   VK_LBUTTON */
@@ -221,7 +221,7 @@ static KPTAB kptab[MAX_KPTAB] =
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}
 };
 
-static KPTAB ext_kptab[] =
+static const KPTAB ext_kptab[] =
 {
    {0,          0,              0,              0,            0}, /* MUST BE EMPTY */
    {PADENTER,   SHF_PADENTER,   CTL_PADENTER,   ALT_PADENTER, 0}, /* 13 */
