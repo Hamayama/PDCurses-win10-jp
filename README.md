@@ -60,10 +60,18 @@
    X座標を指定するように変わったため、対応した。  
    (Windows 8.1 までは、( chcp 65001 の場合は) 文字数で指定するようになっていた。  
    (これは、日本語版 Windows の固有の動作だったのかもしれない。。。))  
+   
    また、画面の幅を超えて表示しようとした場合には、  
    はみ出した部分を出力しないようにした。  
+   
    また、ゼロ幅スペース (U+200B) については、  
-   出力しないでスキップするようにした。  
+   シンボル PDC_SKIP_ZERO_WIDTH_SPACE を define することで、  
+   表示をスキップできるようにした。  
+   (Windows 8.1 までは、ゼロ幅スペース (U+200B) は、ゼロ幅で表示できていたが、  
+   Windows 10 では、半角幅で表示されるようになったもよう)  
+   現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。  
+   (本機能は、PDC_WIN10_JP が define されていないと、有効にならない)  
+   
    (実装の詳細については、[wincon/pdcdisp_sub.c][1] を参照)
 
 6. 文字幅を取得するための処理を追加。  
@@ -73,7 +81,7 @@
    (Unicode データの入手先は以下。  
    https://unicode.org/Public/UNIDATA/EastAsianWidth.txt  
    https://unicode.org/Public/UNIDATA/emoji/emoji-data.txt  
-   また、データ抽出用のツールは、[tools_unicode][3] フォルダに入れておいた)  
+   また、データ抽出用のツールは、[tools_unicode][3] フォルダに入れておいた。  
    (ツールの実行には Gauche が必要))  
    (実装の詳細については、[wincon/pdcdisp_sub.c][1] を参照)  
    
@@ -155,7 +163,10 @@
 
 16. Windows Terminal で、マウス操作に対応  
     `( wincon/pdcwin.h  wincon/pdcscrn.c  wincon/pdckbd.c  wincon/pdckbd_sub.c )`  
-    シンボル PDC_VT_MOUSE_INPUT を define することで、  
+    現状、Windows Terminal では、Windows Console API のマウスイベント関連が、  
+    未実装となっている。  
+    https://github.com/microsoft/terminal/issues/376  
+    このため、シンボル PDC_VT_MOUSE_INPUT を define することで、  
     Windows Terminal の場合に、  
     VT エスケープシーケンスによるマウス入力を受け付けられるようにした。  
     (実装の詳細については、[wincon/pdckbd_sub.c][2] を参照)  
@@ -235,9 +246,9 @@
 ## 使用例
 - MinGW 用のサンプルソースを、[demos_mingw][4] フォルダに格納しました。  
   widetest.c が日本語表示のサンプルで、inputtest.c がキー/マウス入力のサンプルです。  
-  0000_compile.bat を実行すると、コンパイルを行い、実行ファイルを生成します。
+  0000_compile.bat を実行すると、コンパイルを行い、実行ファイルが生成されます。
 
-- また、Lem エディタのフロントエンドとして、本ライブラリを使用しています。  
+- また、実用例としては、Lem エディタのフロントエンドとして、本ライブラリを使用しています。  
   https://github.com/cxxxr/lem  
   https://github.com/cxxxr/lem/wiki/Windows-Platform
 
@@ -257,7 +268,7 @@
    現状、すべて全角幅扱いとしている (不完全)
 
 3. ゼロ幅文字については、現状、ゼロ幅スペース (U+200B) のみ考慮している  
-   (ただし、表示をスキップしているため、クリップボードにコピーすることはできない)
+   (ただし、単に表示をスキップするため、クリップボードにコピーすることはできない)
 
 4. 合字については、現状、非対応
 
@@ -389,9 +400,10 @@
 - 2020-12-10 v3.9-jp0020 内部処理見直し(pdcdisp_sub.c)  
   (関数の、ポインタを取る引数をconstにした)
 - 2020-12-12 v3.9-jp0021 内部処理見直し(いくつかの配列変数をconstにした)
+- 2020-12-12 v3.9-jp0022 シンボル PDC_SKIP_ZERO_WIDTH_SPACE を追加
 
 
-(2020-12-10)
+(2020-12-12)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c

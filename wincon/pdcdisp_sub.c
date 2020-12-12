@@ -13,6 +13,9 @@ struct interval
 /* inner functions */
 static int search_table(int ch, const struct interval *table, int size);
 static int is_surrogate(int ch);
+#ifdef PDC_SKIP_ZERO_WIDTH_SPACE
+static int is_zero_width_space(int ch);
+#endif
 static int is_wide(int ch);
 static int is_ambwidth(int ch);
 static int is_emoji(int ch);
@@ -56,6 +59,14 @@ static int is_surrogate(int ch)
 {
     return (ch >= 0xd800 && ch <= 0xdfff);
 }
+
+#ifdef PDC_SKIP_ZERO_WIDTH_SPACE
+/* check if zero-width-space character (U+200B) */
+static int is_zero_width_space(int ch)
+{
+    return (ch == 0x200b);
+}
+#endif
 
 /* check if wide character */
 static int is_wide(int ch)
@@ -257,10 +268,14 @@ static int adjust_cur_x(int y, int x, int disp_width, int disp_height, const cht
     new_x = 0;
     for (i = 0; i < x; i++) {
         ch = scr_line_buf[i] & A_CHARTEXT;
+
+#ifdef PDC_SKIP_ZERO_WIDTH_SPACE
         /* zero-width-space character (U+200B) */
-        if (ch == 0x200b) {
+        if (is_zero_width_space(ch)) {
             continue;
         }
+#endif
+
         new_x++;
         /* surrogate pair character */
         if (is_surrogate(ch)) {
@@ -307,14 +322,18 @@ static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len, int disp_wid
     new_len = 0;
     for (i = 0; i < len; i++) {
         ch = buffer[i];
+
+#ifdef PDC_SKIP_ZERO_WIDTH_SPACE
         /* zero-width-space character (U+200B) */
-        if (ch == 0x200b) {
+        if (is_zero_width_space(ch)) {
             len--;
             for (j = i; j < len; j++) {
                 buffer[j] = buffer[j + 1];
             }
             continue;
         }
+#endif
+
         new_len++;
         new_x++;
         /* surrogate pair character */
