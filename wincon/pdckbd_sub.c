@@ -91,9 +91,9 @@ static const struct vt_input vt_input_table[] = {
 };
 
 /* inner functions */
-static int is_vt_input(PINPUT_RECORD input_rec_ptr);
+static int is_vt_input(const INPUT_RECORD *input_rec_ptr);
 static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR uchar, DWORD ctrl);
-static void drop_left_alt_key_state(PINPUT_RECORD input_rec_ptr);
+static int drop_left_alt_key_state(int ctrl_state);
 static BOOL consume_vt_input(HANDLE hin, int input_seq_len);
 static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr, int peek_flag);
 
@@ -102,15 +102,12 @@ BOOL PDC_peek_console_input_w(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD inp
 BOOL PDC_read_console_input_w(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr);
 
 /* check vt escape sequence */
-static int is_vt_input(PINPUT_RECORD input_rec_ptr)
+static int is_vt_input(const INPUT_RECORD *input_rec_ptr)
 {
-    if (input_rec_ptr->EventType == KEY_EVENT &&
-        input_rec_ptr->Event.KeyEvent.bKeyDown &&
-        input_rec_ptr->Event.KeyEvent.wVirtualKeyCode  == 0 &&
-        input_rec_ptr->Event.KeyEvent.wVirtualScanCode == 0) {
-        return 1;
-    }
-    return 0;
+    return (input_rec_ptr->EventType == KEY_EVENT &&
+            input_rec_ptr->Event.KeyEvent.bKeyDown &&
+            input_rec_ptr->Event.KeyEvent.wVirtualKeyCode  == 0 &&
+            input_rec_ptr->Event.KeyEvent.wVirtualScanCode == 0);
 }
 
 /* set key event */
@@ -127,9 +124,9 @@ static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR u
 
 /* drop left alt key state
    (to avoid unwanted character code conversion on PDCurses) */
-static void drop_left_alt_key_state(PINPUT_RECORD input_rec_ptr)
+static int drop_left_alt_key_state(int ctrl_state)
 {
-    input_rec_ptr->Event.KeyEvent.dwControlKeyState &= ~LEFT_ALT_PRESSED;
+    return (ctrl_state & ~LEFT_ALT_PRESSED);
 }
 
 /* consume vt escape sequence */
@@ -210,7 +207,7 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
             DBG_PRINT("PeekConsoleInputW failed. (input_rec2)\n");
             return FALSE;
         }
-        if (read_event_num2 < 1) {
+        if (read_event_num2 == 0) {
             *read_event_num_ptr = 0;
             /* DBG_PRINT("PeekConsoleInputW returned before read. (input_rec2)\n"); */
             return TRUE;
@@ -222,7 +219,7 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
             DBG_PRINT("ReadConsoleInputW failed. (input_rec2)\n");
             return FALSE;
         }
-        if (read_event_num2 < 1) {
+        if (read_event_num2 == 0) {
             *read_event_num_ptr = 0;
             DBG_PRINT("ReadConsoleInputW returned before read. (input_rec2)\n");
             SetLastError(ERROR_INTERNAL_ERROR);
@@ -241,41 +238,6 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
     *read_event_num_ptr = 1;
     memcpy(input_rec_ptr, &input_rec2[0], sizeof(INPUT_RECORD));
 
-    /* convert some keys */
-    if (is_vt_input(&input_rec2[0]) &&
-        input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x7f) { /* Backspace */
-        set_key_event(input_rec_ptr, 0x8, 0xe, 0x8, ctrl_state);
-        drop_left_alt_key_state(input_rec_ptr);
-        return TRUE;
-    }
-    if (is_vt_input(&input_rec2[0]) &&
-        input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x8) {  /* Ctrl + Backspace */
-        set_key_event(input_rec_ptr, 0x8, 0xe, 0x7f, ctrl_state);
-        drop_left_alt_key_state(input_rec_ptr);
-        return TRUE;
-    }
-    if (is_vt_input(&input_rec2[0]) &&
-        input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x1a) { /* Pause */
-        set_key_event(input_rec_ptr, 0x13, 0x45, 0, ctrl_state);
-        drop_left_alt_key_state(input_rec_ptr);
-        return TRUE;
-    }
-    if (input_rec2[0].EventType == KEY_EVENT &&
-        input_rec2[0].Event.KeyEvent.bKeyDown &&
-        input_rec2[0].Event.KeyEvent.wVirtualKeyCode == 0x32 &&
-        input_rec2[0].Event.KeyEvent.wVirtualScanCode == 0 &&
-        input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0) {    /* Ctrl + Space */
-        set_key_event(input_rec_ptr, 0x20, 0x39, 0x20, ctrl_state);
-        drop_left_alt_key_state(input_rec_ptr);
-        return TRUE;
-    }
-    if (is_vt_input(&input_rec2[0]) &&
-        input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x9) {  /* Ctrl + Tab */
-        set_key_event(input_rec_ptr, 0x9, 0xf, 0x0, ctrl_state);
-        drop_left_alt_key_state(input_rec_ptr);
-        return TRUE;
-    }
-
     /* get/set modifier key state */
     if (input_rec2[0].EventType == KEY_EVENT) {
         if (!is_vt_input(&input_rec2[0])) {
@@ -284,9 +246,39 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
         } else {
             /* vt escape sequence doesn't have modifier key state.
                so, we set the current state here. */
+            ctrl_state = drop_left_alt_key_state(ctrl_state);
             input_rec_ptr->Event.KeyEvent.dwControlKeyState = ctrl_state;
-            drop_left_alt_key_state(input_rec_ptr);
         }
+    }
+
+    /* convert some keys */
+    if (is_vt_input(&input_rec2[0]) &&
+        input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x7f) { /* Backspace */
+        set_key_event(input_rec_ptr, 0x8, 0xe, 0x8, ctrl_state);
+        return TRUE;
+    }
+    if (is_vt_input(&input_rec2[0]) &&
+        input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x8) {  /* Ctrl + Backspace */
+        set_key_event(input_rec_ptr, 0x8, 0xe, 0x7f, ctrl_state);
+        return TRUE;
+    }
+    if (is_vt_input(&input_rec2[0]) &&
+        input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x1a) { /* Pause */
+        set_key_event(input_rec_ptr, 0x13, 0x45, 0, ctrl_state);
+        return TRUE;
+    }
+    if (input_rec2[0].EventType == KEY_EVENT &&
+        input_rec2[0].Event.KeyEvent.bKeyDown &&
+        input_rec2[0].Event.KeyEvent.wVirtualKeyCode == 0x32 &&
+        input_rec2[0].Event.KeyEvent.wVirtualScanCode == 0 &&
+        input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0) {    /* Ctrl + Space */
+        set_key_event(input_rec_ptr, 0x20, 0x39, 0x20, ctrl_state);
+        return TRUE;
+    }
+    if (is_vt_input(&input_rec2[0]) &&
+        input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x9) {  /* Ctrl + Tab */
+        set_key_event(input_rec_ptr, 0x9, 0xf, 0x0, ctrl_state);
+        return TRUE;
     }
 
     /* process vt escape sequence */
@@ -450,11 +442,11 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
             for (i = 0; i < vt_input_table_len; i++) {
                 if (input_seq_len >= vt_input_table[i].seq_len &&
                     ((vt_input_table[i].modifier_index <= 0 &&
-                      strncmp(vt_input_table[i].seq, input_seq, vt_input_table[i].seq_len) == 0) ||
-                     (strncmp(vt_input_table[i].seq, input_seq, vt_input_table[i].modifier_index) == 0 &&
-                      strncmp(vt_input_table[i].seq + vt_input_table[i].modifier_index + 1,
-                              input_seq + vt_input_table[i].modifier_index + 1,
-                              vt_input_table[i].seq_len - vt_input_table[i].modifier_index - 1) == 0))) {
+                      !strncmp(vt_input_table[i].seq, input_seq, vt_input_table[i].seq_len)) ||
+                     (!strncmp(vt_input_table[i].seq, input_seq, vt_input_table[i].modifier_index) &&
+                      !strncmp(vt_input_table[i].seq + vt_input_table[i].modifier_index + 1,
+                               input_seq + vt_input_table[i].modifier_index + 1,
+                               vt_input_table[i].seq_len - vt_input_table[i].modifier_index - 1)))) {
 
                     /* set key event */
                     set_key_event(input_rec_ptr,

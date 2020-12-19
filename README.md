@@ -187,6 +187,19 @@
     `( pdcurses/addstr.c  pdcurses/insstr.c )`  
     配列アクセスよりも前に、index をチェックするようにした。
 
+19. マウスによるコピー&ペースト処理を修正  
+    `( curspriv.h  getch.c  pdcdisp_sub.c )`  
+    PDCurses では、端末に横取りされていなければ、  
+    Shift + ボタン1 のドラッグでコピー、  
+    Shift + ボタン2 のクリックでペーストが可能となっている。  
+    このとき、文字幅を考慮するように修正した。  
+    (ただし、現状、画面をはみ出した領域もコピーしてしまう等の問題がある)  
+    また、PDC_DISABLE_CLICK_EVENT を define していると、  
+    ペーストができなかったため、修正した。  
+    また、PDC_PASTE_ON_RIGHT_CLICK を define することで、  
+    Shift + ボタン2 (中ボタン) ではなく、Shift + ボタン3 (右ボタン) でペーストできるようにした。  
+    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
+
 
 ## インストール方法
 - MSYS2/MinGW-w64 (64bit) 環境でのインストール手順を、以下に示します。  
@@ -401,9 +414,12 @@
   (関数の、ポインタを取る引数をconstにした)
 - 2020-12-12 v3.9-jp0021 内部処理見直し(いくつかの配列変数をconstにした)
 - 2020-12-12 v3.9-jp0022 シンボル PDC_SKIP_ZERO_WIDTH_SPACE を追加
+- 2020-12-19 v3.9-jp0023 内部処理見直し(pdcwin.h, pdckbd_sub.c, pdckbd.c, pdcscrn.c)  
+  マウスによるコピー&ペースト処理を修正(curspriv.h, getch.c, pdcdisp_sub.c)  
+  シンボル PDC_PASTE_ON_RIGHT_CLICK を追加
 
 
-(2020-12-12)
+(2020-12-19)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c

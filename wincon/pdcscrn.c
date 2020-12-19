@@ -730,7 +730,7 @@ void PDC_reset_shell_mode(void)
 
     /* disable vt escape sequence of mouse input (sgr-1006) */
     if (pdc_winterm && SP->_trap_mbe) {
-        char *vt_mouse_input_disable_cmd = "\x1b[?1000l\x1b[?1003l\x1b[?1006l";
+        char *vt_mouse_input_disable_cmd = "\x1b[?1003;1006l";
         DWORD written;
         WriteConsoleA(std_con_out, vt_mouse_input_disable_cmd, strlen(vt_mouse_input_disable_cmd), &written, NULL);
     }

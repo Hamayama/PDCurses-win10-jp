@@ -77,6 +77,10 @@ int     PDC_scr_open(void);
 void    PDC_set_keyboard_binary(bool);
 void    PDC_transform_line(int, int, int, const chtype *);
 const char *PDC_sysname(void);
+#ifdef PDC_WIN10_JP
+/* for windows 10 jp */
+int     PDC_get_buf_x(int y, int x, int disp_width, int disp_height, const chtype *scr_line_buf);
+#endif
 
 /* Internal cross-module functions */
 

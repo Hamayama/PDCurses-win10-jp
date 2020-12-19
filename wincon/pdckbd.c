@@ -732,7 +732,7 @@ int PDC_mouse_set(void)
     /* enable vt escape sequence of mouse input (sgr-1006) */
     if (pdc_winterm && SP->_trap_mbe) {
         HANDLE std_con_out = GetStdHandle(STD_OUTPUT_HANDLE);
-        char *vt_mouse_input_enable_cmd  = "\x1b[?1000h\x1b[?1003h\x1b[?1006h";
+        char *vt_mouse_input_enable_cmd  = "\x1b[?1003;1006h";
         DWORD written;
         WriteConsoleA(std_con_out, vt_mouse_input_enable_cmd, strlen(vt_mouse_input_enable_cmd), &written, NULL);
     }

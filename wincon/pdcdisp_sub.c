@@ -29,6 +29,7 @@ BOOL PDC_write_console_w(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_
                          COORD cur_pos, COORD disp_size, const chtype *scr_line_buf);
 BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, LPDWORD written_num_ptr,
                                         WORD attr, COORD cur_pos, COORD disp_size, const chtype *scr_line_buf);
+int PDC_get_buf_x(int y, int x, int disp_width, int disp_height, const chtype *scr_line_buf);
 
 /* search a character from interval table */
 static int search_table(int ch, const struct interval *table, int size)
@@ -541,5 +542,49 @@ BOOL PDC_write_console_w_with_attribute(HANDLE hout, WCHAR *buffer, DWORD len, L
     /* set return value */
     *written_num_ptr = len1;
     return TRUE;
+}
+
+/* get buffer-x position */
+int PDC_get_buf_x(int y, int x, int disp_width, int disp_height, const chtype *scr_line_buf)
+{
+    int i;
+    int new_x;
+    int ch;
+
+    /* check arguments */
+    if (x < 0 || x >= disp_width || y < 0 || y >= disp_height) {
+        return 0;
+    }
+    if (scr_line_buf == NULL) {
+        return 0;
+    }
+
+    /* get buffer-x position */
+    new_x = 0;
+    for (i = 0; (i < disp_width) && (new_x < x); i++) {
+        ch = scr_line_buf[i] & A_CHARTEXT;
+
+#ifdef PDC_SKIP_ZERO_WIDTH_SPACE
+        /* zero-width-space character (U+200B) */
+        if (is_zero_width_space(ch)) {
+            continue;
+        }
+#endif
+
+        new_x++;
+        /* surrogate pair character */
+        if (is_surrogate(ch)) {
+            /* nop */
+        /* wide character */
+        /* ambiguous width character */
+        /* emoji character */
+        } else if (is_wide(ch) ||
+                   (is_ambwidth(ch) && pdc_ambiguous_width > 1) ||
+                   (is_emoji(ch) && pdc_emoji_width > 1)) {
+            new_x++;
+        }
+    }
+    if (i >= disp_width) { i = 0; }
+    return i;
 }
 #endif
