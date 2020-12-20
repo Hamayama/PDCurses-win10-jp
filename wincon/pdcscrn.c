@@ -465,7 +465,6 @@ int PDC_scr_open(void)
 
 #ifdef PDC_WIN10_JP
     /* for windows 10 jp */
-
     /* preserve console mode (input/output) */
     GetConsoleMode(pdc_con_in,  &pdc_con_in_mode_orig);
     GetConsoleMode(pdc_con_out, &pdc_con_out_mode_orig);
@@ -730,7 +729,7 @@ void PDC_reset_shell_mode(void)
 
     /* disable vt escape sequence of mouse input (sgr-1006) */
     if (pdc_winterm && SP->_trap_mbe) {
-        char *vt_mouse_input_disable_cmd = "\x1b[?1003;1006l";
+        const char *vt_mouse_input_disable_cmd = "\x1b[?1003;1006l";
         DWORD written;
         WriteConsoleA(std_con_out, vt_mouse_input_disable_cmd, strlen(vt_mouse_input_disable_cmd), &written, NULL);
     }

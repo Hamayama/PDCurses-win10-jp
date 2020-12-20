@@ -238,6 +238,7 @@ static int _mouse_key(void)
     {
 #ifdef PDC_WIN10_JP
         /* for windows 10 jp */
+        /* consider character width */
         i = SP->mouse_status.y * COLS + PDC_get_buf_x(SP->mouse_status.y, SP->mouse_status.x,
                                                       SP->cols, SP->lines,
                                                       curscr->_y[SP->mouse_status.y]);
@@ -261,6 +262,7 @@ static int _mouse_key(void)
         }
     }
 #if PDC_PASTE_ON_RIGHT_CLICK
+    /* use button3 instead of button2 to paste */
 #if PDC_DISABLE_CLICK_EVENT
     else if ((!mbe || SP->mouse_status.button[2] & BUTTON_SHIFT) &&
              changes & 4 && (SP->mouse_status.button[2] &

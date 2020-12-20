@@ -112,7 +112,6 @@ int PDC_set_blink(bool blinkon)
 
 #ifdef PDC_WIN10_JP
         /* for windows 10 jp */
-
         /* mintty requires winpty for running PDCurses and it supports
            only 16 colors */
         if (pdc_mintty) {

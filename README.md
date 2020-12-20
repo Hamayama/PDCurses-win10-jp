@@ -189,11 +189,11 @@
 
 19. マウスによるコピー&ペースト処理を修正  
     `( curspriv.h  getch.c  pdcdisp_sub.c )`  
-    PDCurses では、端末に横取りされていなければ、  
+    PDCurses では、(端末に横取りされていなければ、)  
     Shift + ボタン1 のドラッグでコピー、  
     Shift + ボタン2 のクリックでペーストが可能となっている。  
-    このとき、文字幅を考慮するように修正した。  
-    (ただし、現状、画面をはみ出した領域もコピーしてしまう等の問題がある)  
+    この処理について、文字幅を考慮するように修正した。  
+    (ただし、現状、画面幅をはみ出した領域もコピーしてしまう問題がある)  
     また、PDC_DISABLE_CLICK_EVENT を define していると、  
     ペーストができなかったため、修正した。  
     また、PDC_PASTE_ON_RIGHT_CLICK を define することで、  
@@ -355,6 +355,12 @@
       https://github.com/microsoft/terminal/issues/7466  
       https://github.com/microsoft/terminal/issues/3088
 
+17. コマンドプロンプト (cmd.exe) で、マウスによるコピー&ペーストができない (Windows 10)  
+    → 文字幅を考慮するように修正した。  
+    また、Shift + ボタン2 (中ボタン) ではなく、Shift + ボタン3 (右ボタン) でペーストできるようにした。  
+    (Windows Terminal 等の他の端末では、マウスの Shift + ボタン 操作を端末自身が処理するため、  
+    問題が出なかったもよう)
+
 
 ## 環境等
 - OS
@@ -417,9 +423,10 @@
 - 2020-12-19 v3.9-jp0023 内部処理見直し(pdcwin.h, pdckbd_sub.c, pdckbd.c, pdcscrn.c)  
   マウスによるコピー&ペースト処理を修正(curspriv.h, getch.c, pdcdisp_sub.c)  
   シンボル PDC_PASTE_ON_RIGHT_CLICK を追加
+- 2020-12-20 v3.9-jp0024 内部処理見直し(pdckbd.c, pdcscrn.c)(文字列のconst化)
 
 
-(2020-12-19)
+(2020-12-20)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
