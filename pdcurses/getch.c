@@ -263,25 +263,13 @@ static int _mouse_key(void)
     }
 #if PDC_PASTE_ON_RIGHT_CLICK
     /* use button3 instead of button2 to paste */
-#if PDC_DISABLE_CLICK_EVENT
-    else if ((!mbe || SP->mouse_status.button[2] & BUTTON_SHIFT) &&
-             changes & 4 && (SP->mouse_status.button[2] &
-             BUTTON_ACTION_MASK) == BUTTON_RELEASED)
-#else
     else if ((!mbe || SP->mouse_status.button[2] & BUTTON_SHIFT) &&
              changes & 4 && (SP->mouse_status.button[2] &
              BUTTON_ACTION_MASK) == BUTTON_CLICKED)
-#endif
-#else
-#if PDC_DISABLE_CLICK_EVENT
-    else if ((!mbe || SP->mouse_status.button[1] & BUTTON_SHIFT) &&
-             changes & 2 && (SP->mouse_status.button[1] &
-             BUTTON_ACTION_MASK) == BUTTON_RELEASED)
 #else
     else if ((!mbe || SP->mouse_status.button[1] & BUTTON_SHIFT) &&
              changes & 2 && (SP->mouse_status.button[1] &
              BUTTON_ACTION_MASK) == BUTTON_CLICKED)
-#endif
 #endif
     {
         SP->key_code = FALSE;

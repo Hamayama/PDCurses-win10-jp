@@ -93,7 +93,7 @@ static const struct vt_input vt_input_table[] = {
 /* inner functions */
 static int is_vt_input(const INPUT_RECORD *input_rec_ptr);
 static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR uchar, DWORD ctrl);
-static int drop_left_alt_key_state(int ctrl_state);
+static DWORD drop_left_alt_key_state(DWORD ctrl_state);
 static BOOL consume_vt_input(HANDLE hin, int input_seq_len);
 static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr, int peek_flag);
 
@@ -124,7 +124,7 @@ static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR u
 
 /* drop left alt key state
    (to avoid unwanted character code conversion on PDCurses) */
-static int drop_left_alt_key_state(int ctrl_state)
+static DWORD drop_left_alt_key_state(DWORD ctrl_state)
 {
     return (ctrl_state & ~LEFT_ALT_PRESSED);
 }
@@ -174,21 +174,20 @@ BOOL PDC_read_console_input_w(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD inp
 }
 static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr, int peek_flag)
 {
-    static int old_mouse_x = -1;
-    static int old_mouse_y = -1;
-    static int mouse_button_state = 0;
-    static int ctrl_state = 0;
+    static DWORD mouse_button_state = 0;
+    static DWORD ctrl_state = 0;
     INPUT_RECORD input_rec2[MAX_INPUT_REC_LEN];
     DWORD read_event_num2;
     char input_seq[MAX_INPUT_REC_LEN + 1];
     int input_seq_len;
     int input_seq_len2;
     int vt_input_table_len;
-    int mouse_input_state;
-    int mouse_button_no;
+    int mouse_cmd_read_state;
+    int mouse_button_param;
     int mouse_x;
     int mouse_y;
     int mouse_button_press;
+    DWORD mouse_event_flags;
     int ret_val;
     int i;
 
@@ -232,6 +231,13 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
             return FALSE;
         }
         read_event_num2++;
+    }
+
+    /* check read event number */
+    if (read_event_num2 > MAX_INPUT_REC_LEN) {
+        DBG_PRINT("internal error. (input_rec2)\n");
+        SetLastError(ERROR_INTERNAL_ERROR);
+        return FALSE;
     }
 
     /* set return data (only one input record is returned) */
@@ -298,6 +304,15 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
         }
         input_seq[input_seq_len] = 0;
 
+#if 0
+        /* for debug */
+        DBG_PRINT(" vt input seq : ");
+        for (i = 0; i < MAX_INPUT_REC_LEN; i++) {
+            DBG_PRINT("%02x ", (unsigned char)input_seq[i]);
+        }
+        DBG_PRINT("\n");
+#endif
+
         /* process vt escape sequence of mouse input (sgr-1006) '[<' */
         if (input_seq_len >= 2 &&
             input_seq[0] == 0x5b &&
@@ -305,28 +320,29 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
             input_seq_len2 = 2;
 
             /* read parameters 'Db ; Dx ; Dy M/m' */
-            mouse_input_state = 0;
-            mouse_button_no = 0;
+            mouse_cmd_read_state = 0;
+            mouse_button_param = 0;
             mouse_x = 0;
             mouse_y = 0;
             mouse_button_press = 0;
+            mouse_event_flags = 0;
             ret_val = FALSE;
             for (i = 2; i < input_seq_len; i++) {
-                switch (mouse_input_state) {
+                switch (mouse_cmd_read_state) {
                     case 0:
-                        /* read mouse button number 'Db' */
+                        /* read mouse button parameter 'Db' */
                         if (input_seq[i] >= 0x30 && input_seq[i] <= 0x39) {
                             input_seq_len2++;
-                            mouse_button_no *= 10;
-                            mouse_button_no += input_seq[i] - 0x30;
-                            if (mouse_button_no < 10000) {
+                            mouse_button_param *= 10;
+                            mouse_button_param += input_seq[i] - 0x30;
+                            if (mouse_button_param < 10000) {
                                 continue;
                             }
                         }
                         /* read delimiter ';' */
                         if (input_seq[i] == 0x3b) {
                             input_seq_len2++;
-                            mouse_input_state++;
+                            mouse_cmd_read_state++;
                             continue;
                         }
                         break;
@@ -343,7 +359,7 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
                         /* read delimiter ';' */
                         if (input_seq[i] == 0x3b) {
                             input_seq_len2++;
-                            mouse_input_state++;
+                            mouse_cmd_read_state++;
                             continue;
                         }
                         break;
@@ -367,13 +383,12 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
                             input_rec_ptr->Event.MouseEvent.dwMousePosition.X = mouse_x - 1;
                             input_rec_ptr->Event.MouseEvent.dwMousePosition.Y = mouse_y - 1;
                             input_rec_ptr->Event.MouseEvent.dwButtonState = 0;
-                            input_rec_ptr->Event.MouseEvent.dwControlKeyState = ctrl_state;
+                            input_rec_ptr->Event.MouseEvent.dwControlKeyState = 0;
                             input_rec_ptr->Event.MouseEvent.dwEventFlags = 0;
 
                             /* set mouse button state */
-                            mouse_button_state &= ~0xfff80000; /* Wheel direction off */
-                            mouse_button_no    &= ~0x8;        /* Ctrl key state off */
-                            switch (mouse_button_no) {
+                            mouse_button_state &= ~0xffff0000;   /* clear wheel movement amount */
+                            switch (mouse_button_param & 0xc3) { /* extract button no */
                                 case 0:  /* left button */
                                     if (mouse_button_press) {
                                         mouse_button_state |=  FROM_LEFT_1ST_BUTTON_PRESSED;
@@ -396,26 +411,44 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
                                     }
                                     break;
                                 case 64: /* vertical wheel up */
-                                    input_rec_ptr->Event.MouseEvent.dwEventFlags |= MOUSE_WHEELED;
+                                    mouse_event_flags |= MOUSE_WHEELED;
                                     mouse_button_state |= 0x00780000;
                                     break;
                                 case 65: /* vertical wheel down */
-                                    input_rec_ptr->Event.MouseEvent.dwEventFlags |= MOUSE_WHEELED;
+                                    mouse_event_flags |= MOUSE_WHEELED;
                                     mouse_button_state |= 0xff880000;
                                     break;
                             }
                             input_rec_ptr->Event.MouseEvent.dwButtonState = mouse_button_state;
 
+                            /* set modifier key state */
+#if 0
+                            /* (comment out because Windows Terminal returns wrong value) */
+                            if (mouse_button_param & 0x4) {  /* shift key */
+                                ctrl_state |=  SHIFT_PRESSED;
+                            } else {
+                                ctrl_state &= ~SHIFT_PRESSED;
+                            }
+                            if (mouse_button_param & 0x8) {  /* meta key */
+                                ctrl_state |=  LEFT_ALT_PRESSED;
+                            } else {
+                                ctrl_state &= ~LEFT_ALT_PRESSED;
+                            }
+                            if (mouse_button_param & 0x10) { /* control key */
+                                ctrl_state |=  LEFT_CTRL_PRESSED;
+                            } else {
+                                ctrl_state &= ~LEFT_CTRL_PRESSED;
+                            }
+#endif
+                            input_rec_ptr->Event.MouseEvent.dwControlKeyState = ctrl_state;
+
                             /* set mouse event flags */
-                            if (old_mouse_x != mouse_x || old_mouse_y != mouse_y) {
+                            if (mouse_button_param & 0x20) { /* mouse moved */
                                 /* PDCurses uses MOUSE_MOVED with a different definition from Win32 API */
-                                /* input_rec_ptr->Event.MouseEvent.dwEventFlags |= MOUSE_MOVED; */
-                                input_rec_ptr->Event.MouseEvent.dwEventFlags |= 0x1;
+                                /* mouse_event_flags |= MOUSE_MOVED; */
+                                mouse_event_flags |= 0x1;
                             }
-                            if (!peek_flag) {
-                                old_mouse_x = mouse_x;
-                                old_mouse_y = mouse_y;
-                            }
+                            input_rec_ptr->Event.MouseEvent.dwEventFlags = mouse_event_flags;
 
                             /* succeeded */
                             ret_val = TRUE;

@@ -300,7 +300,10 @@ static int adjust_cur_x(int y, int x, int disp_width, int disp_height, const cht
 */
 static int adjust_buf_and_len(int y, int x, WCHAR *buffer, int len, int disp_width, int disp_height)
 {
-    int i, j;
+    int i;
+#ifdef PDC_SKIP_ZERO_WIDTH_SPACE
+    int j;
+#endif
     int new_x;
     int new_len;
     int ch;

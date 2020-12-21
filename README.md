@@ -173,15 +173,18 @@
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。  
     (本機能は、PDC_WIN10_JP が define されていないと、有効にならない)
 
-17. マウスクリックイベントの無効化機能を追加  
+17. ~~マウスクリックイベントの無効化機能を追加  
     `( wincon/pdckbd.c )`  
     シンボル PDC_DISABLE_CLICK_EVENT を define することで、  
     マウスクリックイベントの検出を抑制できるようにした。  
     (押し下げと押し上げイベントのみになる)  
     これは、Windows Terminal で、マウスのボタンを長押しすると、  
-    押し下げイベントが2回発生して、  
+    押し下げイベントが 2 回発生して、  
     マウスクリックイベントの判定を誤るケースが出たため、追加した。  
-    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
+    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。~~  
+    → 本機能は削除した  
+    (押し下げイベントが 2 回発生するというのは、  
+    コマンド (VT エスケープシーケンス) の解釈ミスだった)
 
 18. Cppcheck のチェック結果の対応  
     `( pdcurses/addstr.c  pdcurses/insstr.c )`  
@@ -194,8 +197,8 @@
     Shift + ボタン2 のクリックでペーストが可能となっている。  
     この処理について、文字幅を考慮するように修正した。  
     (ただし、現状、画面幅をはみ出した領域もコピーしてしまう問題がある)  
-    また、PDC_DISABLE_CLICK_EVENT を define していると、  
-    ペーストができなかったため、修正した。  
+    ~~また、PDC_DISABLE_CLICK_EVENT を define していると、  
+    ペーストができなかったため、修正した。~~  
     また、PDC_PASTE_ON_RIGHT_CLICK を define することで、  
     Shift + ボタン2 (中ボタン) ではなく、Shift + ボタン3 (右ボタン) でペーストできるようにした。  
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
@@ -424,9 +427,12 @@
   マウスによるコピー&ペースト処理を修正(curspriv.h, getch.c, pdcdisp_sub.c)  
   シンボル PDC_PASTE_ON_RIGHT_CLICK を追加
 - 2020-12-20 v3.9-jp0024 内部処理見直し(pdckbd.c, pdcscrn.c)(文字列のconst化)
+- 2020-12-21 v3.9-jp0025 内部処理見直し(pdckbd_sub.c, pdcdisp_sub.c)  
+  マウスクリックイベントの無効化機能を削除(pdckbd.c, getch.c)  
+  シンボル PDC_DISABLE_CLICK_EVENT を削除
 
 
-(2020-12-20)
+(2020-12-21)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
