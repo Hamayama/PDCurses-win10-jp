@@ -430,9 +430,10 @@
 - 2020-12-21 v3.9-jp0025 内部処理見直し(pdckbd_sub.c, pdcdisp_sub.c)  
   マウスクリックイベントの無効化機能を削除(pdckbd.c, getch.c)  
   シンボル PDC_DISABLE_CLICK_EVENT を削除
+- 2020-12-22 v3.9-jp0026 内部処理見直し(pdckbd_sub.c)
 
 
-(2020-12-21)
+(2020-12-22)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c

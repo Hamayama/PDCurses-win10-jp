@@ -93,7 +93,6 @@ static const struct vt_input vt_input_table[] = {
 /* inner functions */
 static int is_vt_input(const INPUT_RECORD *input_rec_ptr);
 static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR uchar, DWORD ctrl);
-static DWORD drop_left_alt_key_state(DWORD ctrl_state);
 static BOOL consume_vt_input(HANDLE hin, int input_seq_len);
 static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DWORD input_rec_len, LPDWORD read_event_num_ptr, int peek_flag);
 
@@ -120,13 +119,6 @@ static void set_key_event(PINPUT_RECORD input_rec_ptr, WORD vk, WORD vs, WCHAR u
     input_rec_ptr->Event.KeyEvent.wVirtualScanCode  = vs;
     input_rec_ptr->Event.KeyEvent.uChar.UnicodeChar = uchar;
     input_rec_ptr->Event.KeyEvent.dwControlKeyState = ctrl;
-}
-
-/* drop left alt key state
-   (to avoid unwanted character code conversion on PDCurses) */
-static DWORD drop_left_alt_key_state(DWORD ctrl_state)
-{
-    return (ctrl_state & ~LEFT_ALT_PRESSED);
 }
 
 /* consume vt escape sequence */
@@ -191,9 +183,11 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
     int ret_val;
     int i;
 
+    /* initialize return data */
+    *read_event_num_ptr = 0;
+
     /* check arguments */
     if (input_rec_len == 0) {
-        *read_event_num_ptr = 0;
         /* DBG_PRINT("specified input record length is zero.\n"); */
         return TRUE;
     }
@@ -202,31 +196,26 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
     if (peek_flag) {
         /* peek all console input */
         if (!PeekConsoleInputW(hin, input_rec2, MAX_INPUT_REC_LEN, &read_event_num2)) {
-            *read_event_num_ptr = 0;
             DBG_PRINT("PeekConsoleInputW failed. (input_rec2)\n");
             return FALSE;
         }
         if (read_event_num2 == 0) {
-            *read_event_num_ptr = 0;
             /* DBG_PRINT("PeekConsoleInputW returned before read. (input_rec2)\n"); */
             return TRUE;
         }
     } else {
         /* read one console input */
         if (!ReadConsoleInputW(hin, input_rec2, 1, &read_event_num2)) {
-            *read_event_num_ptr = 0;
             DBG_PRINT("ReadConsoleInputW failed. (input_rec2)\n");
             return FALSE;
         }
         if (read_event_num2 == 0) {
-            *read_event_num_ptr = 0;
             DBG_PRINT("ReadConsoleInputW returned before read. (input_rec2)\n");
             SetLastError(ERROR_INTERNAL_ERROR);
             return FALSE;
         }
         /* peek all console input */
         if (!PeekConsoleInputW(hin, &input_rec2[1], MAX_INPUT_REC_LEN - 1, &read_event_num2)) {
-            *read_event_num_ptr = 0;
             DBG_PRINT("PeekConsoleInputW failed. (input_rec2) (after read)\n");
             return FALSE;
         }
@@ -252,8 +241,9 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
         } else {
             /* vt escape sequence doesn't have modifier key state.
                so, we set the current state here. */
-            ctrl_state = drop_left_alt_key_state(ctrl_state);
-            input_rec_ptr->Event.KeyEvent.dwControlKeyState = ctrl_state;
+            /* (drop left alt key state to avoid unwanted character code
+                conversion on PDCurses) */
+            input_rec_ptr->Event.KeyEvent.dwControlKeyState = ctrl_state & ~LEFT_ALT_PRESSED;
         }
     }
 
@@ -383,7 +373,7 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
                             input_rec_ptr->Event.MouseEvent.dwMousePosition.X = mouse_x - 1;
                             input_rec_ptr->Event.MouseEvent.dwMousePosition.Y = mouse_y - 1;
                             input_rec_ptr->Event.MouseEvent.dwButtonState = 0;
-                            input_rec_ptr->Event.MouseEvent.dwControlKeyState = 0;
+                            input_rec_ptr->Event.MouseEvent.dwControlKeyState = ctrl_state;
                             input_rec_ptr->Event.MouseEvent.dwEventFlags = 0;
 
                             /* set mouse button state */
@@ -420,27 +410,6 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
                                     break;
                             }
                             input_rec_ptr->Event.MouseEvent.dwButtonState = mouse_button_state;
-
-                            /* set modifier key state */
-#if 0
-                            /* (comment out because Windows Terminal returns wrong value) */
-                            if (mouse_button_param & 0x4) {  /* shift key */
-                                ctrl_state |=  SHIFT_PRESSED;
-                            } else {
-                                ctrl_state &= ~SHIFT_PRESSED;
-                            }
-                            if (mouse_button_param & 0x8) {  /* meta key */
-                                ctrl_state |=  LEFT_ALT_PRESSED;
-                            } else {
-                                ctrl_state &= ~LEFT_ALT_PRESSED;
-                            }
-                            if (mouse_button_param & 0x10) { /* control key */
-                                ctrl_state |=  LEFT_CTRL_PRESSED;
-                            } else {
-                                ctrl_state &= ~LEFT_CTRL_PRESSED;
-                            }
-#endif
-                            input_rec_ptr->Event.MouseEvent.dwControlKeyState = ctrl_state;
 
                             /* set mouse event flags */
                             if (mouse_button_param & 0x20) { /* mouse moved */
