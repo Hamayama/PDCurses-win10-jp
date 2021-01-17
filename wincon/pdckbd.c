@@ -179,13 +179,14 @@ static const KPTAB kptab[MAX_KPTAB] =
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},
 
 #ifdef PDC_ADDITIONAL_KEYS
-   {0x3A,       0x2A,      0x3A,        0x3A,       0   }, /* 186 VK_OEM_1      (:) */
-   {0x3B,       0x2B,      0x3B,        0x3B,       0   }, /* 187 VK_OEM_PLUS   (;) */
-   {0x2C,       0x3C,      0x2C,        0x2C,       0   }, /* 188 VK_OEM_COMMA  (,) */
-   {0x2D,       0x3D,      0x2D,        0x2D,       0   }, /* 189 VK_OEM_MINUS  (-) */
-   {0x2E,       0x3E,      0x2E,        0x2E,       0   }, /* 190 VK_OEM_PERIOD (.) */
-   {0x2F,       0x3F,      0x2F,        0x2F,       0   }, /* 191 VK_OEM_2      (/) */
-   {0x40,       0x60,      0x40,        0x40,       0   }, /* 192 VK_OEM_3      (@) */
+   /* oem key assignments have variation by keyboard                            US JP */
+   {0,          996,       997,         998,        0   }, /* 186 VK_OEM_1      ;: :* */
+   {0,          996,       997,         998,        0   }, /* 187 VK_OEM_PLUS   =+ ;+ */
+   {0,          996,       997,         998,        0   }, /* 188 VK_OEM_COMMA  ,< ,< */
+   {0,          996,       997,         998,        0   }, /* 189 VK_OEM_MINUS  -_ -= */
+   {0,          996,       997,         998,        0   }, /* 190 VK_OEM_PERIOD .> .> */
+   {0,          996,       997,         998,        0   }, /* 191 VK_OEM_2      /? /? */
+   {0,          996,       997,         998,        0   }, /* 192 VK_OEM_3      `~ @` */
 #else
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},
@@ -201,15 +202,28 @@ static const KPTAB kptab[MAX_KPTAB] =
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},
 
-   {0x5B,       0x7B,      0x1B,        ALT_LBRACKET,0  }, /* 219 */
-   {0x5C,       0x7C,      0x1C,        ALT_BSLASH, 0   }, /* 220 */
-   {0x5D,       0x7D,      0x1D,        ALT_RBRACKET,0  }, /* 221 */
-   {0,          0,         0x27,        ALT_FQUOTE, 0   }, /* 222 */
+#ifdef PDC_ADDITIONAL_KEYS
+   /* oem key assignments have variation by keyboard                         US JP */
+   {0,          996,       997,         998,        0   }, /* 219 VK_OEM_4   [{ [{ */
+   {0,          996,       997,         998,        0   }, /* 220 VK_OEM_5   \| \| */
+   {0,          996,       997,         998,        0   }, /* 221 VK_OEM_6   ]} ]} */
+   {0,          996,       997,         998,        0   }, /* 222 VK_OEM_7   '" ^~ */
+   {0,          996,       997,         998,        0   }, /* 223 VK_OEM_8         */
+   {0,          0,         0,           0,          0   }, /* 224 */
+   {0,          0,         0,           0,          0   }, /* 225 */
+   {0,          996,       997,         998,        0   }, /* 226 VK_OEM_102 <> \_ */
+#else
+   {0x5B,       0x7B,      0x1B,        ALT_LBRACKET,0  }, /* 219 VK_OEM_4 */
+   {0x5C,       0x7C,      0x1C,        ALT_BSLASH, 0   }, /* 220 VK_OEM_5 */
+   {0x5D,       0x7D,      0x1D,        ALT_RBRACKET,0  }, /* 221 VK_OEM_6 */
+   {0,          0,         0x27,        ALT_FQUOTE, 0   }, /* 222 VK_OEM_7 */
    {0,          0,         0,           0,          0   }, /* 223 */
    {0,          0,         0,           0,          0   }, /* 224 */
    {0,          0,         0,           0,          0   }, /* 225 */
+   {0,          0,         0,           0,          0   }, /* 226 */
+#endif
 
-   /* 226 through 255 */
+   /* 227 through 255 */
 
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},
@@ -218,7 +232,7 @@ static const KPTAB kptab[MAX_KPTAB] =
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},
    {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},
-   {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}
+   {0, 0, 0, 0, 0}
 };
 
 static const KPTAB ext_kptab[] =
@@ -443,6 +457,37 @@ static int _process_key_event(void)
         idx = vk;
     }
 
+#ifdef PDC_ADDITIONAL_KEYS
+    /* determine keycode */
+    if (state & SHIFT_PRESSED) {
+        int key1 = key;
+        key = enhanced ? ext_kptab[idx].shift : kptab[idx].shift;
+        if (key == 996) {
+            /* preserve keycode for LEFT_ALT + shift + key */
+            key = key1;
+        }
+    } else if (state & (LEFT_CTRL_PRESSED|RIGHT_CTRL_PRESSED)) {
+        key = enhanced ? ext_kptab[idx].control : kptab[idx].control;
+        if (key == 997) {
+            /* get character code from vk */
+            key = MapVirtualKey(vk, MAPVK_VK_TO_CHAR);
+            /* make control character */
+            if (key >= 0x40 && key <= 0x5F) {
+                key -= 0x40;
+            } else if (key == 0x3F) {
+                key += 0x40;
+            }
+        }
+    } else if (state & (LEFT_ALT_PRESSED|RIGHT_ALT_PRESSED)) {
+        key = enhanced ? ext_kptab[idx].alt : kptab[idx].alt;
+        if (key == 998) {
+            /* get character code from vk */
+            key = MapVirtualKey(vk, MAPVK_VK_TO_CHAR);
+        }
+    } else {
+        key = enhanced ? ext_kptab[idx].normal : kptab[idx].normal;
+    }
+#else
     if (state & SHIFT_PRESSED)
         key = enhanced ? ext_kptab[idx].shift : kptab[idx].shift;
 
@@ -454,6 +499,7 @@ static int _process_key_event(void)
 
     else
         key = enhanced ? ext_kptab[idx].normal : kptab[idx].normal;
+#endif
 
     if (key < KEY_CODE_YES)
         SP->key_code = FALSE;

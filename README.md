@@ -151,7 +151,7 @@
 14. いくつかのキー入力を受け付けるように変更  
     `( wincon/pdckbd.c )`  
     シンボル PDC_ADDITIONAL_KEYS を define することで、  
-    「;」「:」「,」「-」「.」「/」「@」の各キーについて、  
+    「;」「:」「,」「-」「.」「/」「@」「^」の各キーについて、  
     Ctrl キーもしくは Alt キーとの同時押しを受け付けられるようにした。  
     (今までは、キー入力イベントが発生しなかった)  
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
@@ -358,7 +358,8 @@
       https://github.com/microsoft/terminal/issues/7466  
       https://github.com/microsoft/terminal/issues/3088
 
-17. コマンドプロンプト (cmd.exe) で、マウスによるコピー&ペーストができない (Windows 10)  
+17. コマンドプロンプト (cmd.exe) で、  
+    Shift + マウスボタン によるコピー&ペーストがうまくできない (Windows 10)  
     → 文字幅を考慮するように修正した。  
     また、Shift + ボタン2 (中ボタン) ではなく、Shift + ボタン3 (右ボタン) でペーストできるようにした。  
     (Windows Terminal 等の他の端末では、マウスの Shift + ボタン 操作が端末側で処理されるため、  
@@ -377,7 +378,7 @@
   - Cppcheck 2.2
 - 端末
   - コマンドプロンプト (cmd.exe)
-  - ConEmu 201124 (Windows 10)
+  - ConEmu 210112 (Windows 10)
   - ConEmu 191012 (Windows 8.1)
   - mintty 3.4.1 (winpty が必要) (Windows 10)
   - mintty 3.1.4 (winpty が必要) (Windows 8.1)
@@ -431,9 +432,11 @@
   マウスクリックイベントの無効化機能を削除(pdckbd.c, getch.c)  
   シンボル PDC_DISABLE_CLICK_EVENT を削除
 - 2020-12-22 v3.9-jp0026 内部処理見直し(pdckbd_sub.c)
+- 2021-1-17  v3.9-jp0027 内部処理見直し(pdckbd.c)  
+  (キーボードのOEM関連キーのバリエーション対応)
 
 
-(2020-12-22)
+(2021-1-17)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
