@@ -566,41 +566,58 @@ static int _process_mouse_event(void)
 
         if (event_count)
         {
-            INPUT_RECORD ip;
+            INPUT_RECORD ip[20];
             DWORD count;
             bool have_click = FALSE;
+            bool first_event = FALSE;
+            int i2;
 
 #if defined(PDC_WIN10_JP) && defined(PDC_VT_MOUSE_INPUT) 
             /* for windows 10 jp */
             /* use vt escape sequence of mouse input */
-            PDC_peek_console_input_w(pdc_con_in, &ip, 1, &count);
+            if (pdc_winterm) {
+                /* we can get only one input record (incomplete) */
+                PDC_peek_console_input_w(pdc_con_in, ip, 1, &count);
+            } else {
+                /* get multiple input records */
+                PeekConsoleInput(pdc_con_in, ip, 20, &count);
+            }
 #else
-            PeekConsoleInput(pdc_con_in, &ip, 1, &count);
+            /* get multiple input records */
+            PeekConsoleInput(pdc_con_in, ip, 20, &count);
 #endif
 
             /* check mouse event */
-            if (count > 0 && ip.EventType == MOUSE_EVENT) {
-                for (i = 0; i < 3; i++)
+            for (i2 = 0; i2 < (int)count; i2++)
+            {
+                if (ip[i2].EventType == MOUSE_EVENT)
                 {
-                    if (SP->mouse_status.button[i] == BUTTON_PRESSED &&
-                        !(ip.Event.MouseEvent.dwButtonState & button_mask[i]))
+                    for (i = 0; i < 3; i++)
                     {
-                        SP->mouse_status.button[i] = BUTTON_CLICKED;
-                        have_click = TRUE;
+                        if (SP->mouse_status.button[i] == BUTTON_PRESSED &&
+                            !(ip[i2].Event.MouseEvent.dwButtonState & button_mask[i]))
+                        {
+                            SP->mouse_status.button[i] = BUTTON_CLICKED;
+                            have_click = TRUE;
+                            if (i2 == 0) { first_event = TRUE; }
+                        }
                     }
                 }
             }
 
             /* If a click was found, throw out the event */
+            /* (we can drop the first event only (incomplete)) */
 
-            if (have_click)
+            if (have_click && first_event)
+            {
 #if defined(PDC_WIN10_JP) && defined(PDC_VT_MOUSE_INPUT) 
                 /* for windows 10 jp */
                 /* use vt escape sequence of mouse input */
-                PDC_read_console_input_w(pdc_con_in, &ip, 1, &count);
+                PDC_read_console_input_w(pdc_con_in, ip, 1, &count);
 #else
-                ReadConsoleInput(pdc_con_in, &ip, 1, &count);
+                ReadConsoleInput(pdc_con_in, ip, 1, &count);
 #endif
+            }
         }
     }
 

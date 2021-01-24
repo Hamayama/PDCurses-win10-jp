@@ -434,9 +434,11 @@
 - 2020-12-22 v3.9-jp0026 内部処理見直し(pdckbd_sub.c)
 - 2021-1-17  v3.9-jp0027 内部処理見直し(pdckbd.c)  
   (キーボードのOEM関連キーのバリエーション対応)
+- 2021-1-24  v3.9-jp0028 内部処理見直し(pdckbd.c)  
+  (cmd.exe におけるマウスによるコピー&ペースト処理を改善(不完全))
 
 
-(2021-1-17)
+(2021-1-24)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
