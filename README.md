@@ -173,18 +173,22 @@
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。  
     (本機能は、PDC_WIN10_JP が define されていないと、有効にならない)
 
-17. ~~マウスクリックイベントの無効化機能を追加  
+17. マウスクリックイベントの検出を無効化  
     `( wincon/pdckbd.c )`  
     シンボル PDC_DISABLE_CLICK_EVENT を define することで、  
-    マウスクリックイベントの検出を抑制できるようにした。  
+    マウスクリックイベントの検出を無効化できるようにした。  
     (押し下げと押し上げイベントのみになる)  
-    これは、Windows Terminal で、マウスのボタンを長押しすると、  
+    ~~これは、Windows Terminal で、マウスのボタンを長押しすると、  
     押し下げイベントが 2 回発生して、  
     マウスクリックイベントの判定を誤るケースが出たため、追加した。  
-    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。~~  
     → 本機能は削除した  
     (押し下げイベントが 2 回発生するというのは、  
-    コマンド (VT エスケープシーケンス) の解釈ミスだった)
+    コマンド (VT エスケープシーケンス) の解釈ミスだった)~~  
+    → 本機能は、一度削除したが、  
+    結局、マウスクリックイベントの検出が不完全であるため、復活させた。  
+    (キーボードを押し続けてリピート状態にした場合、うまく検出できない等)  
+    現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。  
+    (すなわち、マウスクリックイベントの検出を無効化している)
 
 18. Cppcheck のチェック結果の対応  
     `( pdcurses/addstr.c  pdcurses/insstr.c )`  
@@ -197,8 +201,8 @@
     Shift + ボタン2 のクリックでペーストが可能となっている。  
     この処理について、文字幅を考慮するように修正した。  
     (ただし、現状、画面幅をはみ出した領域もコピーしてしまう問題がある)  
-    ~~また、PDC_DISABLE_CLICK_EVENT を define していると、  
-    ペーストができなかったため、修正した。~~  
+    また、PDC_DISABLE_CLICK_EVENT を define していると、  
+    ペーストができなかったため、修正した。  
     また、PDC_PASTE_ON_RIGHT_CLICK を define することで、  
     Shift + ボタン2 (中ボタン) ではなく、Shift + ボタン3 (右ボタン) でペーストできるようにした。  
     現状、Makefile では、Windows 10 の場合のみ、本機能を有効にしている。
@@ -368,21 +372,21 @@
 
 ## 環境等
 - OS
-  - Windows 10 (version 1909) (64bit)
+  - Windows 10 (version 20H2) (64bit)
   - Windows 8.1 (64bit)
 - 環境
-  - MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev5, Built by MSYS2 project)) (Windows 10)
+  - MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev6, Built by MSYS2 project)) (Windows 10)
   - MSYS2/MinGW-w64 (64bit) (gcc version 9.2.0 (Rev2, Built by MSYS2 project)) (Windows 8.1)
   - winpty-fixes 0.4.4-dev ( https://github.com/Hamayama/winpty-fixes ) (Windows 10)
   - winpty 0.4.3 (Windows 8.1)
   - Cppcheck 2.2
 - 端末
   - コマンドプロンプト (cmd.exe)
-  - ConEmu 210112 (Windows 10)
+  - ConEmu 210206 (Windows 10)
   - ConEmu 191012 (Windows 8.1)
-  - mintty 3.4.1 (winpty が必要) (Windows 10)
+  - mintty 3.4.4 (winpty が必要) (Windows 10)
   - mintty 3.1.4 (winpty が必要) (Windows 8.1)
-  - Windows Terminal 1.4.3243.0 (Windows 10)
+  - Windows Terminal 1.5.10411.0 (Windows 10)
 - ライセンス
   - オリジナルと同様とします
 
@@ -436,9 +440,11 @@
   (キーボードのOEM関連キーのバリエーション対応)
 - 2021-1-24  v3.9-jp0028 内部処理見直し(pdckbd.c)  
   (cmd.exe におけるマウスによるコピー&ペースト処理を改善(不完全))
+- 2021-2-21  v3.9-jp0029 シンボル PDC_DISABLE_CLICK_EVENT を復活  
+  (結局、マウスクリックイベントの検出が不完全であるため、復活させた)
 
 
-(2021-1-24)
+(2021-2-21)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c

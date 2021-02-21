@@ -553,6 +553,9 @@ static int _process_mouse_event(void)
         SP->mouse_status.button[i] =
             (MEV.dwButtonState & button_mask[i]) ? action : 0;
 
+#if PDC_DISABLE_CLICK_EVENT
+    /* disable mouse click event */
+#else
     if (action == BUTTON_PRESSED && MEV.dwButtonState & 7 && SP->mouse_wait)
     {
         /* Check for a click -- a PRESS followed immediately by a release */
@@ -620,6 +623,7 @@ static int _process_mouse_event(void)
             }
         }
     }
+#endif
 
     SP->mouse_status.x = MEV.dwMousePosition.X;
     SP->mouse_status.y = MEV.dwMousePosition.Y;
