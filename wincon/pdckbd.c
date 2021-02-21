@@ -462,12 +462,14 @@ static int _process_key_event(void)
     if (state & SHIFT_PRESSED) {
         int key1 = key;
         key = enhanced ? ext_kptab[idx].shift : kptab[idx].shift;
+        /* deal with oem key assignments */
         if (key == 996) {
             /* preserve keycode for LEFT_ALT + shift + key */
             key = key1;
         }
     } else if (state & (LEFT_CTRL_PRESSED|RIGHT_CTRL_PRESSED)) {
         key = enhanced ? ext_kptab[idx].control : kptab[idx].control;
+        /* deal with oem key assignments */
         if (key == 997) {
             /* get character code from vk */
             key = MapVirtualKey(vk, MAPVK_VK_TO_CHAR);
@@ -480,6 +482,7 @@ static int _process_key_event(void)
         }
     } else if (state & (LEFT_ALT_PRESSED|RIGHT_ALT_PRESSED)) {
         key = enhanced ? ext_kptab[idx].alt : kptab[idx].alt;
+        /* deal with oem key assignments */
         if (key == 998) {
             /* get character code from vk */
             key = MapVirtualKey(vk, MAPVK_VK_TO_CHAR);
