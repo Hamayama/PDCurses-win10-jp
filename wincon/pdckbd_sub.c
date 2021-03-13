@@ -258,11 +258,14 @@ static BOOL read_console_input_w_sub(HANDLE hin, PINPUT_RECORD input_rec_ptr, DW
         set_key_event(input_rec_ptr, 0x8, 0xe, 0x7f, ctrl_state);
         return TRUE;
     }
+#if 0
+    /* this breaks Ctrl + Z key input */
     if (is_vt_input(&input_rec2[0]) &&
         input_rec2[0].Event.KeyEvent.uChar.UnicodeChar == 0x1a) { /* Pause */
         set_key_event(input_rec_ptr, 0x13, 0x45, 0, ctrl_state);
         return TRUE;
     }
+#endif
     if (input_rec2[0].EventType == KEY_EVENT &&
         input_rec2[0].Event.KeyEvent.bKeyDown &&
         input_rec2[0].Event.KeyEvent.wVirtualKeyCode == 0x32 &&

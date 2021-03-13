@@ -385,11 +385,11 @@
   - Cppcheck 2.2
 - 端末
   - コマンドプロンプト (cmd.exe)
-  - ConEmu 210206 (Windows 10)
+  - ConEmu 210312 (Windows 10)
   - ConEmu 191012 (Windows 8.1)
   - mintty 3.4.4 (winpty が必要) (Windows 10)
   - mintty 3.1.4 (winpty が必要) (Windows 8.1)
-  - Windows Terminal 1.5.10411.0 (Windows 10)
+  - Windows Terminal 1.6.10571.0 (Windows 10)
 - ライセンス
   - オリジナルと同様とします
 
@@ -446,9 +446,11 @@
 - 2021-2-21  v3.9-jp0029 シンボル PDC_DISABLE_CLICK_EVENT を復活  
   (結局、マウスクリックイベントの検出が不完全であるため、復活させた)
 - 2021-2-21  v3.9-jp0030 コメント追加のみ(pdckbd.c)
+- 2021-3-13  v3.9-jp0031 Windows Terminal で、Ctrl + Z キーが入力できない件を修正(pdckbd_sub.c)  
+  (VT エスケープシーケンス の処理誤り)
 
 
-(2021-2-21)
+(2021-3-13)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
