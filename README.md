@@ -364,6 +364,10 @@
       (古い画面サイズが、アプリに通知されているもよう)  
       https://github.com/microsoft/terminal/issues/7466  
       https://github.com/microsoft/terminal/issues/3088
+    - アプリ (vim 等) を開き、全角文字の行の折り返し表示がある状態にして、  
+      画面幅を変更すると、固まって落ちる。  
+      https://github.com/microsoft/terminal/issues/9547  
+      https://github.com/microsoft/terminal/issues/4907
 
 17. コマンドプロンプト (cmd.exe) で、  
     Shift + マウスボタン によるコピー&ペーストがうまくできない (Windows 10)  
@@ -450,7 +454,7 @@
   (VT エスケープシーケンス の処理誤り)
 
 
-(2021-3-13)
+(2021-4-3)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
