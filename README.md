@@ -357,7 +357,7 @@
 16. その他、Windows Terminal の不具合情報 (Windows 10)
     - 日本語入力 (IME) の未確定文字列が、画面上に重なって表示される。  
       https://github.com/microsoft/terminal/issues/6192
-    - 絵文字の入力が化けてエコー表示される(アプリへの入力は正常)。  
+    - 絵文字の入力が化けてエコー表示される (アプリへの入力は正常)。  
       https://github.com/microsoft/terminal/issues/1503
     - リサイズしてから、アプリ (vim 等) を終了すると、ゴミが表示される。  
       その状態で、再度、アプリを起動すると、表示が崩れる。  
@@ -365,7 +365,7 @@
       https://github.com/microsoft/terminal/issues/7466  
       https://github.com/microsoft/terminal/issues/3088
     - アプリ (vim 等) を開き、全角文字の行の折り返し表示がある状態にして、  
-      画面幅を変更すると、固まって落ちる。  
+      画面幅を変更すると、異常終了する。  
       https://github.com/microsoft/terminal/issues/9547  
       https://github.com/microsoft/terminal/issues/4907
 
@@ -389,7 +389,7 @@
   - Cppcheck 2.2
 - 端末
   - コマンドプロンプト (cmd.exe)
-  - ConEmu 210312 (Windows 10)
+  - ConEmu 210314 (Windows 10)
   - ConEmu 191012 (Windows 8.1)
   - mintty 3.4.4 (winpty が必要) (Windows 10)
   - mintty 3.1.4 (winpty が必要) (Windows 8.1)
@@ -454,7 +454,7 @@
   (VT エスケープシーケンス の処理誤り)
 
 
-(2021-4-3)
+(2021-4-4)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
