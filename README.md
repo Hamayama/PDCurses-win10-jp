@@ -364,10 +364,11 @@
       (古い画面サイズが、アプリに通知されているもよう)  
       https://github.com/microsoft/terminal/issues/7466  
       https://github.com/microsoft/terminal/issues/3088
-    - アプリ (vim 等) を開き、全角文字の行の折り返し表示がある状態にして、  
+    - ~~アプリ (vim 等) を開き、全角文字の行の折り返し表示がある状態にして、  
       画面幅を変更すると、異常終了する。  
       https://github.com/microsoft/terminal/issues/9547  
-      https://github.com/microsoft/terminal/issues/4907
+      https://github.com/microsoft/terminal/issues/4907~~  
+      → これは修正されました。
 
 17. コマンドプロンプト (cmd.exe) で、  
     Shift + マウスボタン によるコピー&ペーストがうまくできない (Windows 10)  
@@ -382,18 +383,18 @@
   - Windows 10 (version 20H2) (64bit)
   - Windows 8.1 (64bit)
 - 環境
-  - MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev6, Built by MSYS2 project)) (Windows 10)
+  - MSYS2/MinGW-w64 (64bit) (gcc version 10.2.0 (Rev10, Built by MSYS2 project)) (Windows 10)
   - MSYS2/MinGW-w64 (64bit) (gcc version 9.2.0 (Rev2, Built by MSYS2 project)) (Windows 8.1)
   - winpty-fixes 0.4.4-dev ( https://github.com/Hamayama/winpty-fixes ) (Windows 10)
   - winpty 0.4.3 (Windows 8.1)
   - Cppcheck 2.2
 - 端末
   - コマンドプロンプト (cmd.exe)
-  - ConEmu 210314 (Windows 10)
+  - ConEmu 210422 (Windows 10)
   - ConEmu 191012 (Windows 8.1)
-  - mintty 3.4.4 (winpty が必要) (Windows 10)
+  - mintty 3.4.7 (winpty が必要) (Windows 10)
   - mintty 3.1.4 (winpty が必要) (Windows 8.1)
-  - Windows Terminal 1.6.10571.0 (Windows 10)
+  - Windows Terminal 1.7.1033.0 (Windows 10)
 - ライセンス
   - オリジナルと同様とします
 
@@ -454,7 +455,7 @@
   (VT エスケープシーケンス の処理誤り)
 
 
-(2021-4-4)
+(2021-4-25)
 
 
 [1]:https://github.com/Hamayama/PDCurses-win10-jp/blob/master/wincon/pdcdisp_sub.c
